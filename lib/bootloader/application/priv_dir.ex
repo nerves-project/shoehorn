@@ -1,7 +1,7 @@
 defmodule Bootloader.Application.PrivDir do
   alias Bootloader.Utils
 
-  defstruct [hash: nil, path: nil]
+  defstruct [hash: nil, path: nil, files: []]
 
   def load(app) do
     path =
@@ -12,7 +12,8 @@ defmodule Bootloader.Application.PrivDir do
       end
     %__MODULE__{
       hash: hash(path),
-      path: path
+      path: path,
+      files: files(path)
     }
   end
 
@@ -37,18 +38,29 @@ defmodule Bootloader.Application.PrivDir do
     Utils.hash("")
   end
   def hash(path) do
-    blob =
-      case File.ls(path) do
-        {:ok, files} ->
-          IO.inspect path
-          Utils.expand_paths(files, path)
+    files(path)
+    |> Enum.map(fn({_, hash}) ->
+      hash
+    end)
+    |> Enum.join
+    |> Utils.hash
+  end
 
-          |> Enum.map(& File.read!/1)
-          |> Enum.map(& Utils.hash/1)
-          |> Enum.join
-        _ -> ""
-      end
-    Utils.hash(blob)
+  def files(nil), do: []
+  def files(path) do
+    case File.ls(path) do
+      {:ok, files} ->
+        Utils.expand_paths(files, path)
+        |> Enum.map(fn(file) ->
+          hash =
+            Path.join(path, file)
+            |> File.read!
+            |> Utils.hash
+          {file, hash}
+        end)
+
+      _error -> []
+    end
   end
 
 end
