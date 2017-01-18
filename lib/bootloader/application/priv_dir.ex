@@ -1,5 +1,6 @@
 defmodule Bootloader.Application.PrivDir do
   alias Bootloader.Utils
+  alias __MODULE__
 
   defstruct [hash: nil, path: nil, files: []]
 
@@ -39,7 +40,7 @@ defmodule Bootloader.Application.PrivDir do
   end
   def hash(path) do
     files(path)
-    |> Enum.map(fn({_, hash}) ->
+    |> Enum.map(fn(%{hash: hash}) ->
       hash
     end)
     |> Enum.join
@@ -51,14 +52,7 @@ defmodule Bootloader.Application.PrivDir do
     case File.ls(path) do
       {:ok, files} ->
         Utils.expand_paths(files, path)
-        |> Enum.map(fn(file) ->
-          hash =
-            Path.join(path, file)
-            |> File.read!
-            |> Utils.hash
-          {file, hash}
-        end)
-
+        |> Enum.map(&PrivDir.File.load(&1, path))
       _error -> []
     end
   end
@@ -66,25 +60,8 @@ defmodule Bootloader.Application.PrivDir do
   def compare(%__MODULE__{hash: hash} = s, %__MODULE__{hash: hash}),
     do: %{s | files: []}
   def compare(%__MODULE__{files: sources} = s, %__MODULE__{files: targets}) do
-    modified =
-      Enum.reduce(sources, [], fn({s_file, _} = s, acc) ->
-        t = Enum.find(targets, fn({t_file, _}) -> t_file == s_file end)
-        case compare(s, t) do
-          {:noop, _} -> acc
-          modification -> [modification | acc]
-        end
-      end)
-    deleted =
-      Enum.reduce(targets, [], fn({t_file, _} = t, acc) ->
-        if Enum.any?(sources,  fn({s_file, _}) -> s_file == t_file end) do
-          acc
-        else
-          [{:deleted, t} | acc]
-        end
-      end)
-    %{s | files: (modified ++ deleted)}
+    files = Bootloader.Application.PrivDir.File.compare(sources, targets)
+    %{s | files: files}
   end
-  def compare(s, nil), do: {:inserted, s}
-  def compare({_, hash} = s, {_, hash}), do: {:noop, s}
-  def compare(s, _), do: {:modified, s}
+
 end
