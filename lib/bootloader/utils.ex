@@ -1,7 +1,7 @@
 defmodule Bootloader.Utils do
 
   def bootloader_applications() do
-    [:bootloader, :kernel, :stdlib, :compiler, :elixir, :iex]
+    [:bootloader, :kernel, :stdlib, :compiler, :elixir, :iex, :crypto]
   end
 
   def hash(blob) do
