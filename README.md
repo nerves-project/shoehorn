@@ -14,7 +14,7 @@ end
 
 ## Usage
 
-`Bootoader` acts as a shim to the initialization sequence for your application's
+`Bootloader` acts as a shim to the initialization sequence for your application's
 VM. Using `Bootloader`, you can ensure that the VM will always pass initialization.
 This provides the running target the ability of using Elixir / Erlang to control
 the full application lifecycle through the exposure of new system phases.
