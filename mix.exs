@@ -12,7 +12,7 @@ defmodule Bootloader.Mixfile do
   end
 
   def application do
-    [extra_applications: [],
+    [extra_applications: [:crypto],
      mod: {Bootloader, []}]
   end
 
