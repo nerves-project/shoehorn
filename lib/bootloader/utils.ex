@@ -19,6 +19,7 @@ defmodule Bootloader.Utils do
     |> Enum.map(&Path.expand/1)
     |> Enum.filter(&File.regular?/1)
     |> Enum.uniq
+    |> Enum.map(&Path.relative_to(&1, expand_dir))
   end
 
   defp dir_files(path) do
