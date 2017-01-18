@@ -1,5 +1,4 @@
 use Mix.Config
 
-config :bootloader, init: [
-  simple_app: Bootloader.Application.Simple
-]
+config :bootloader,
+  app: :simple_app

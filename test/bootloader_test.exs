@@ -1,8 +1,15 @@
 defmodule BootloaderTest do
-  use ExUnit.Case
+  use Bootloader.TestCase, async: false
   doctest Bootloader
 
-  test "the truth" do
-    assert 1 + 1 == 2
+  test "can build bootloader and start it" do
+    in_fixture "simple_app", fn ->
+      System.cmd("mix", ["deps.get"])
+      System.cmd("mix", ["compile", "--silent"])
+      System.cmd("mix", ["release", "--no-tar"])
+
+
+    end
   end
+
 end
