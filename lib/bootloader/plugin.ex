@@ -1,15 +1,13 @@
 defmodule Bootloader.Plugin do
   use Mix.Releases.Plugin
 
-  @boot_apps [:bootloader, :kernel, :stdlib, :compiler, :elixir, :iex]
-
+  alias Bootloader.Utils
   alias Mix.Releases.{App, Release, Profile}
   alias Mix.Releases.Utils, as: ReleaseUtils
 
   def before_assembly(release), do: release
 
   def after_assembly(%Release{} = release) do
-    IO.inspect release
     generate_boot_script(release)
     release
   end
@@ -40,9 +38,9 @@ defmodule Bootloader.Plugin do
     #apps_paths = Path.wildcard("#{apps_path}/*")
 
     start_apps = Enum.filter(app_release.applications, fn %App{name: n} ->
-                               n in @boot_apps end)
+                               n in Utils.bootloader_applications end)
     load_apps = Enum.reject(app_release.applications,  fn %App{name: n} ->
-                               n in @boot_apps end)
+                               n in Utils.bootloader_applications end)
     load_apps =
       #[]
       Enum.map(load_apps, & {&1.name, '#{&1.vsn}', :none})
@@ -75,9 +73,7 @@ defmodule Bootloader.Plugin do
                :no_warn_sasl,
                :no_module_tests,
                :silent]
-    IO.puts "----------"
-    IO.inspect release
-    IO.puts "----------"
+
     :systools.make_script('bootloader', options)
     |> IO.inspect
     File.cp(Path.join(rel_dir, "bootloader.boot"),

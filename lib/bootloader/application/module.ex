@@ -1,27 +1,18 @@
 defmodule Bootloader.Application.Module do
-  defstruct [module: nil, attributes: [], filename: nil, code_path: nil]
+  defstruct [name: nil, hash: nil]
 
   def load(mod) do
-    IO.inspect "Load Module #{inspect mod}"
-    {file, path} =
-      case :code.get_object_code(mod) do
-        :error -> {nil, nil}
-        {_mod, _bin, path} ->
-          path = to_string(path)
-          {Path.basename(path), Path.dirname(path)}
-      end
-    vsn =
-
     %__MODULE__{
-      module: mod,
-      attributes: mod.module_info(:attributes),
-      filename: file,
-      code_path: path
+      name: mod,
+      hash: hash(mod)
     }
   end
 
-  def update(%__MODULE__{} = module, bin, opts) do
-
+  defp hash(mod) do
+    case mod.module_info(:attributes)[:vsn] do
+      [vsn] -> vsn
+      _ -> mod.module_info(:md5) |> Base.encode16
+    end
   end
 
 end

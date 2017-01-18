@@ -1,63 +1,60 @@
 defmodule Bootloader.ApplicationController do
   use GenServer
 
-  defstruct [app: nil, init_apps: [], applications: [], phase: :boot, overlay_path: nil]
+  alias Bootloader.Utils
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def update_module(mod, bin, opts) do
-    GenServer.call({:mod, :update, {mod, bin, opts}})
+  def hash() do
+    GenServer.call(__MODULE__, :hash)
   end
 
   def init(opts) do
     app = opts[:app]
-    init =  opts[:init_apps] || []
+    init =  opts[:init] || []
     overlay_path = opts[:overlay_path]
-    s = %__MODULE__{
-      init_apps: init,
+    handler = opts[:handler] || Bootloader.Handler
+
+    s = %{
+      init: init,
       app: app,
-      overlay_path: overlay_path
+      overlay_path: overlay_path,
+      handler: handler,
+      handler_state: handler.init()
     }
 
-    send(self(), :init_start)
+    send(self(), :init)
 
     {:ok, s}
   end
 
-  def handle_call({:mod, :update, {mod, bin, opts}}, _from, s) do
-
-    app = application_by_module(mod, s.applications)
-    #Bootloader.Application.Module.update()
-
-    {:reply, {:ok, mod}, s}
+  def handle_call(hash, _from, s) do
+    hash =
+      ([s.app] ++ s.init)
+      |> Enum.map(&Bootloader.Application.load/1)
+      |> Enum.uniq
+      |> Enum.map(& &1.hash)
+      |> Enum.join
+      |> Utils.hash
+    {:reply, hash, s}
   end
 
   # Bootloader Application Init Phase
-  def handle_info(:init_start, s) do
-    IO.puts "Start Init Apps: #{inspect s.init_apps}"
-    send(self(), :app_start)
-    {:noreply, %{s | phase: :init}}
-  end
-
-  def handle_info(:app_start, s) do
-    IO.puts "Start App: #{inspect s.app}"
-    #{:ok, pid} = Bootloader.Application.start_link(s.app)
-    #s = %{s | applications: update_applications(app, s.applications)}
+  def handle_info(:init, s) do
+    IO.puts "Start Init Apps: #{inspect s.init}"
+    for app <- s.init do
+      Application.ensure_all_started(app)
+    end
+    send(self(), :app)
     {:noreply, s}
   end
 
-  defp application_by_module(mod, applications) do
-    Enum.find(applications, fn(%{modules: modules}) ->
-      Enum.any?(modules, & &1.module == mod)
-    end)
-  end
-
-  defp update_applications(app, applications) do
-    applicagtions =
-      Enum.reject(applications, & &1.app == app.app)
-    [app, applications]
+  # Bootloader Application Start Phase
+  def handle_info(:app, s) do
+    Application.ensure_all_started(s.app)
+    {:noreply, s}
   end
 
 end
