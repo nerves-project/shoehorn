@@ -60,7 +60,15 @@ defmodule Bootloader.Application do
         case compare(s, t) do
           {:noop, _} -> acc
           {mod, s} ->
-            modules = Bootloader.Application.Module.compare(s.modules, t.modules)
+            modules =
+              Bootloader.Application.Module.compare(s.modules, t.modules)
+              |> Enum.map(fn
+                {action, mod} when action in [:modified, :inserted] ->
+                  IO.inspect mod.name
+                  {_, bin, _} = :code.get_object_code(mod.name)
+                  {action, %{mod | binary: bin}}
+                mod -> mod
+              end)
             priv_dir = Bootloader.Application.PrivDir.compare(s.priv_dir, t.priv_dir)
             mod = {mod, %{s | modules: modules, priv_dir: priv_dir}}
             [mod | acc]

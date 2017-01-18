@@ -60,7 +60,16 @@ defmodule Bootloader.Application.PrivDir do
   def compare(%__MODULE__{hash: hash} = s, %__MODULE__{hash: hash}),
     do: %{s | files: []}
   def compare(%__MODULE__{files: sources} = s, %__MODULE__{files: targets}) do
-    files = Bootloader.Application.PrivDir.File.compare(sources, targets)
+    files =
+      Bootloader.Application.PrivDir.File.compare(sources, targets)
+      |> Enum.map(fn
+        {action, file} when action in [:modified, :inserted] ->
+          bin =
+            Path.join(s.path, file.path)
+            |> File.read!
+          {action, %{file | binary: bin}}
+        mod -> mod
+      end)
     %{s | files: files}
   end
 

@@ -1,5 +1,5 @@
 defmodule Bootloader.Application.Module do
-  defstruct [name: nil, hash: nil]
+  defstruct [name: nil, hash: nil, binary: nil]
 
   def load(mod) do
     %__MODULE__{
