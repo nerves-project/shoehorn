@@ -11,6 +11,10 @@ defmodule Bootloader.ApplicationController do
     GenServer.call(__MODULE__, :hash)
   end
 
+  def applications() do
+    GenServer.call(__MODULE__, :applications)
+  end
+
   def init(opts) do
     app = opts[:app]
     init =  opts[:init] || []
@@ -30,7 +34,7 @@ defmodule Bootloader.ApplicationController do
     {:ok, s}
   end
 
-  def handle_call(hash, _from, s) do
+  def handle_call(:hash, _from, s) do
     hash =
       ([s.app] ++ s.init)
       |> Enum.map(&Bootloader.Application.load/1)
@@ -39,6 +43,12 @@ defmodule Bootloader.ApplicationController do
       |> Enum.join
       |> Utils.hash
     {:reply, hash, s}
+  end
+
+  def handle_call(:applications, _from, s) do
+    reply =
+      Enum.map([s.app | s.init], &Bootloader.Application.load/1)
+    {:reply, reply, s}
   end
 
   # Bootloader Application Init Phase
