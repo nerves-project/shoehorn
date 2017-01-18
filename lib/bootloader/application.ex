@@ -4,6 +4,12 @@ defmodule Bootloader.Application do
 
   defstruct [name: nil, hash: nil, priv_dir: nil, applications: [], modules: []]
 
+  # @type t :: %__MODULE__{
+  #   name: atom,
+  #   hash: String.t,
+  #   priv_dir:
+  # }
+
   def load(app) do
     Application.load(app)
     applications = applications(app)
@@ -46,5 +52,33 @@ defmodule Bootloader.Application do
   def priv_dir(app) do
     Bootloader.Application.PrivDir.load(app)
   end
+
+  def compare(sources, targets) when is_list(sources) and is_list(targets) do
+    modified =
+      Enum.reduce(sources, [], fn(s, acc) ->
+        t = Enum.find(targets, & &1.name == s.name)
+        case compare(s, t) do
+          {:noop, _} -> acc
+          {mod, s} ->
+            modules = Bootloader.Application.Module.compare(s.modules, t.modules)
+            priv_dir = Bootloader.Application.PrivDir.compare(s.priv_dir, t.priv_dir)
+            mod = {mod, %{s | modules: modules, priv_dir: priv_dir}}
+            [mod | acc]
+        end
+      end)
+    deleted =
+      Enum.reduce(targets, [], fn(t, acc) ->
+        if Enum.any?(sources, & &1.name == t.name) do
+          acc
+        else
+          [{:deleted, t} | acc]
+        end
+      end)
+    modified ++ deleted
+  end
+  def compare(s, nil), do: {:inserted, s}
+  def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
+  def compare(s, _), do: {:modified, s}
+
 
 end
