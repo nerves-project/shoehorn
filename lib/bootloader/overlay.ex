@@ -22,6 +22,7 @@ defmodule Bootloader.Overlay do
 
   def hash(applications) do
       applications
+      |> Enum.map(fn({_, app}) -> app end)
       |> Enum.map(& &1.hash)
       |> Enum.join
       |> Utils.hash

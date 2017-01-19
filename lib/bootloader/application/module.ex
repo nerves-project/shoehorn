@@ -57,7 +57,7 @@ defmodule Bootloader.Application.Module do
     Code.prepend_path(ebin_path)
     :code.load_file(mod.name)
   end
-  def apply({:deleted, mod}) do
+  def apply({:deleted, mod}, _) do
     :code.delete(mod.name)
     :code.purge(mod.name)
   end

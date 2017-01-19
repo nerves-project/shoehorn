@@ -30,5 +30,8 @@ defmodule Bootloader.Utils do
     end
   end
 
+  def rpc(node, module, function, args) do
+    :rpc.block_call(node, module, function, args)
+  end
 
 end

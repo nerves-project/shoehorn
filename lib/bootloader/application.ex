@@ -94,7 +94,9 @@ defmodule Bootloader.Application do
 
   end
   def apply({:modified, app}, overlay_path) do
+    overlay_path = Path.join([overlay_path, to_string(app.name)])
     Application.stop(app.name)
+    Bootloader.Application.PrivDir.apply(app.priv_dir, overlay_path)
     Enum.each(app.modules, &Bootloader.Application.Module.apply(&1, overlay_path))
     # Try to start the application. If it fails, we should callback the handler
     #  for more a strategy, like rolling the code path back.
