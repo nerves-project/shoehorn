@@ -2,15 +2,20 @@ defmodule Bootloader.Plugin do
   use Mix.Releases.Plugin
 
   alias Bootloader.Utils
-  alias Mix.Releases.{App, Release, Profile}
+  alias Mix.Releases.{App, Release}
   alias Mix.Releases.Utils, as: ReleaseUtils
 
-  def before_assembly(release), do: release
+  def before_assembly(release), do: before_assembly(release, [])
+  def before_assembly(release, _opts), do: release
 
-  def after_assembly(%Release{} = release) do
+  def after_assembly(release), do: after_assembly(release, [])
+  def after_assembly(%Release{} = release, _opts) do
     generate_boot_script(release)
     release
   end
+
+  def before_package(release, _opts), do: release
+  def after_package(release, _opts), do: release
 
   def generate_boot_script(app_release) do
 
@@ -24,18 +29,14 @@ defmodule Bootloader.Plugin do
     release = %{release | :applications => release_apps}
     rel_dir = Path.join(["#{app_release.profile.output_dir}", "releases", "#{release.version}"])
 
-
-
-    # This needs to change...
     erts_vsn =
-      case System.get_env("ERL_LIB_DIR") do
-        nil -> Mix.Releases.Utils.erts_version()
-        path ->
-          {:ok, vsn} = Mix.Releases.Utils.detect_erts_version(path)
-          vsn
-      end
-    # apps_path = Keyword.get(Mix.Project.config, :apps_path)
-    #apps_paths = Path.wildcard("#{apps_path}/*")
+    case app_release.profile.include_erts do
+      bool when is_boolean(bool) ->
+        Mix.Releases.Utils.erts_version()
+      path ->
+        {:ok, vsn} = Mix.Releases.Utils.detect_erts_version(path)
+        vsn
+    end
 
     start_apps = Enum.filter(app_release.applications, fn %App{name: n} ->
                                n in Utils.bootloader_applications end)
@@ -75,7 +76,7 @@ defmodule Bootloader.Plugin do
                :silent]
 
     :systools.make_script('bootloader', options)
-    |> IO.inspect
+
     File.cp(Path.join(rel_dir, "bootloader.boot"),
                             Path.join([app_release.profile.output_dir, "bin", "bootloader.boot"]))
   end
