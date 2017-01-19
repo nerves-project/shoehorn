@@ -1,14 +1,13 @@
 defmodule Bootloader.Application do
-  alias Bootloader.Application.Modules
   alias Bootloader.Utils
 
   defstruct [name: nil, hash: nil, priv_dir: nil, applications: [], modules: []]
 
-  # @type t :: %__MODULE__{
-  #   name: atom,
-  #   hash: String.t,
-  #   priv_dir:
-  # }
+  @type t :: %__MODULE__{
+    name: atom,
+    hash: String.t,
+    priv_dir: Bootloader.Application.PrivDir.t
+  }
 
   def load(app) do
     Application.load(app)
@@ -88,5 +87,17 @@ defmodule Bootloader.Application do
   def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
   def compare(s, _), do: {:modified, s}
 
+  def apply({:inserted, _app}) do
 
+  end
+  def apply({:deleted, _app}) do
+
+  end
+  def apply({:modified, app}, overlay_path) do
+    Application.stop(app.name)
+    Enum.each(app.modules, &Bootloader.Application.Module.apply(&1, overlay_path))
+    # Try to start the application. If it fails, we should callback the handler
+    #  for more a strategy, like rolling the code path back.
+    Application.start(app.name)
+  end
 end

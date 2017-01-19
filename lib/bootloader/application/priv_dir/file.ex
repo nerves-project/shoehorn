@@ -3,6 +3,12 @@ defmodule Bootloader.Application.PrivDir.File do
 
   defstruct [path: nil, hash: nil, binary: nil]
 
+  @type t :: %__MODULE__{
+    path: String.t,
+    hash: Stirng.t,
+    binary: binary()
+  }
+
   def load(path, dir) do
     hash =
       Path.join(dir, path)
@@ -15,8 +21,6 @@ defmodule Bootloader.Application.PrivDir.File do
   end
 
   def compare(sources, targets) when is_list(sources) and is_list(targets) do
-    IO.inspect sources
-    IO.inspect targets
     modified =
       Enum.reduce(sources, [], fn(s, acc) ->
         t = Enum.find(targets, fn(t) -> t.path == s.path end)
@@ -39,13 +43,13 @@ defmodule Bootloader.Application.PrivDir.File do
   def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
   def compare(s, _), do: {:modified, s}
 
-  def apply(:inserted, file) do
-
+  def apply({action, file}, priv_dir) when action in [:inserted, :modified] do
+    Path.join(priv_dir, file.path)
+    |> File.write(file.binary)
   end
-  def apply(:deleted, file) do
-
+  def apply({:deleted, file}, priv_dir) do
+    Path.join(priv_dir, file.path)
+    |> File.rm()
   end
-  def apply(:modified, file) do
 
-  end
 end

@@ -15,6 +15,10 @@ defmodule Bootloader.ApplicationController do
     GenServer.call(__MODULE__, :applications)
   end
 
+  def apply_overlay(overlay) do
+    GenServer.call(__MODULE__, {:overlay, :apply, overlay})
+  end
+
   def init(opts) do
     app = opts[:app]
     init =  opts[:init] || []
@@ -48,6 +52,11 @@ defmodule Bootloader.ApplicationController do
   def handle_call(:applications, _from, s) do
     reply =
       Enum.map([s.app | s.init], &Bootloader.Application.load/1)
+    {:reply, reply, s}
+  end
+
+  def handle_call({:overlay, :apply, overlay}, _from, s) do
+    reply = Bootloader.Overlay.apply(overlay, s.overlay_path)
     {:reply, reply, s}
   end
 

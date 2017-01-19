@@ -1,6 +1,12 @@
 defmodule Bootloader.Application.Module do
   defstruct [name: nil, hash: nil, binary: nil]
 
+  @type t :: %__MODULE__{
+    name: atom,
+    hash: String.t | number(),
+    binary: binary()
+  }
+
   def load(mod) do
     %__MODULE__{
       name: mod,
@@ -37,5 +43,23 @@ defmodule Bootloader.Application.Module do
   def compare(s, nil), do: {:inserted, s}
   def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
   def compare(s, _), do: {:modified, s}
+
+  def apply({action, mod}, overlay_path) when action in [:inserted, :modified] do
+    ebin_path = Path.join(overlay_path, "ebin")
+    File.mkdir_p(ebin_path)
+
+    beam_file = Path.join(ebin_path, "#{mod.name}.beam")
+    File.write(beam_file, mod.binary)
+    if action == :modified do
+      :code.purge(mod.name)
+    end
+
+    Code.prepend_path(ebin_path)
+    :code.load_file(mod.name)
+  end
+  def apply({:deleted, mod}) do
+    :code.delete(mod.name)
+    :code.purge(mod.name)
+  end
 
 end
