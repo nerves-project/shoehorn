@@ -1,5 +1,5 @@
 defmodule Bootloader.OverlayTest do
-  use Bootloader.TestCase, async: false
+  use Bootloader.TestCase, async: true
 
   setup_all do
     overlay_fixture_path =
@@ -9,6 +9,9 @@ defmodule Bootloader.OverlayTest do
       Path.join([overlay_fixture_path, "source", "simple_app"])
     target_path =
       Path.join([overlay_fixture_path, "target", "simple_app"])
+
+    Path.join([target_path, "overlays"])
+    |> File.rm_rf!()
 
     [source_path, target_path]
     |> Enum.each(fn(path) ->
@@ -20,18 +23,14 @@ defmodule Bootloader.OverlayTest do
       compile_path(src, ebin)
     end)
     {:ok, node} = :net_kernel.start([:"host@127.0.0.1"])
-    [source: source_path, target: target_path, host_node: node]
-  end
+    overlay_dir = Path.join([target_path, "overlays"])
 
-  test "Can apply overlay", context do
-    overlay_dir = Path.join([context.target, "overlays"])
-    |> IO.inspect
     File.mkdir_p!(overlay_dir)
     {:ok, source_node} = spawn_node(:"source@127.0.0.1", overlay_dir)
     {:ok, target_node} = spawn_node(:"target@127.0.0.1", overlay_dir)
 
-    add_code_path(source_node, Path.join([context.source, "ebin"]))
-    add_code_path(target_node, Path.join([context.target, "ebin"]))
+    add_code_path(source_node, Path.join([source_path, "ebin"]))
+    add_code_path(target_node, Path.join([target_path, "ebin"]))
 
     Bootloader.Utils.rpc(source_node, :application, :start, [:simple_app])
     Bootloader.Utils.rpc(target_node, :application, :start, [:simple_app])
@@ -45,17 +44,59 @@ defmodule Bootloader.OverlayTest do
     overlay =
       Bootloader.Utils.rpc(source_node, Bootloader.Overlay, :load, [sources, targets])
 
-    Bootloader.Utils.rpc(target_node, Bootloader.Overlay, :apply, [overlay, overlay_dir])
+    overlay_dir = Path.join([target_path, "overlays"])
+    assert :ok =
+      Bootloader.Utils.rpc(
+        target_node,
+        Bootloader.Overlay,
+        :apply,
+        [overlay, overlay_dir])
 
-    assert {SimpleApp.Modified, :source, :pong} == Bootloader.Utils.rpc(target_node, SimpleApp.Modified, :ping, [])
-    assert {SimpleApp.Inserted, :source, :pong} == Bootloader.Utils.rpc(target_node, SimpleApp.Inserted, :ping, [])
-    #assert_raise RuntimeError, fn() ->
-      Bootloader.Utils.rpc(target_node, SimpleApp.Deleted, :ping, [])
-      |> IO.inspect
-    #end
+    [source: source_path, target: target_path,
+     overlay: overlay, sources: sources, targets: targets,
+     source_node: source_node, target_node: target_node, host_node: node]
   end
 
+  test "Module Modified Apply", context do
+    assert {SimpleApp.Modified, :source, :pong} ==
+      Bootloader.Utils.rpc(context.target_node, SimpleApp.Modified, :ping, [])
+  end
 
+  test "Module Insert Apply", context do
+    assert {SimpleApp.Inserted, :source, :pong} ==
+      Bootloader.Utils.rpc(context.target_node, SimpleApp.Inserted, :ping, [])
+  end
+
+  test "Module Delete Apply", context do
+    Bootloader.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
+    |> IO.inspect
+  end
+
+  test "PrivDir Modified Apply", context do
+    target_priv_dir =  Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+
+    file_modified = Path.join([target_priv_dir, "file_modified"])
+    source_file_modified =
+      Path.join([context.source, "priv", "file_modified"])
+      |> File.read!
+    assert Bootloader.Utils.rpc(context.target_node, File, :read!, [file_modified]) == source_file_modified
+  end
+
+  test "PrivDir Insert Apply", context do
+    target_priv_dir =  Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+
+    file_inserted = Path.join([target_priv_dir, "file_inserted"])
+    source_file_inserted =
+      Path.join([context.source, "priv", "file_inserted"])
+      |> File.read!
+    assert Bootloader.Utils.rpc(context.target_node, File, :read!, [file_inserted]) == source_file_inserted
+  end
+
+  test "PrivDir Deleted Apply", context do
+    target_priv_dir = Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+    file_deleted = Path.join([target_priv_dir, "file_deleted"])
+    assert {:error, _} = Bootloader.Utils.rpc(context.target_node, File, :read, [file_deleted])
+  end
 
   defp remove_beams(ebin) do
     Path.join([ebin, "*.beam"])
@@ -120,48 +161,5 @@ defmodule Bootloader.OverlayTest do
     |> Enum.at(0)
     |> String.to_atom
   end
-  # test "Can create an overlay delta" do
-  #   sources = [
-  #     %Bootloader.Application{applications: [],
-  #       hash: "B551B4ADCCC853CBE8F8F47E19564FBBB59B2587BC61956DAC4DD8F492AB14C9",
-  #       modules: [
-  #         %Bootloader.Application.Module{
-  #           hash: 113844003775912711108713157198168575621,
-  #           name: SimpleApp.A},
-  #         %Bootloader.Application.Module{
-  #           hash: 689416378326893794310789317689436898974,
-  #           name: SimpleApp.B}],
-  #       name: :simple_app,
-  #       priv_dir: %Bootloader.Application.PrivDir{
-  #         files: [
-  #           %Bootloader.Application.PrivDir.File{binary: nil,
-  #           hash: "8470D56547EEA6236D7C81A644CE74670CA0BBDA998E13C629EF6BB3F0D60B6",
-  #           path: "text"},
-  #           %Bootloader.Application.PrivDir.File{binary: nil,
-  #           hash: "8470D56547EEA6236D7C81A644CE74670CA0BBDA998E13C629EF6BB3F0D603245",
-  #           path: "text2"}],
-  #         hash: "5EC3F2B6946F61D6D8B9ECE112A434E245C07CC566395E79506B9DB6A4D015DA",
-  #         path: "/Users/jschneck/Developer/nerves/bootloader/test/fixtures/simple_app/_build/dev/lib/simple_app/priv"}}]
-  #
-  #   targets = [
-  #     %Bootloader.Application{applications: [],
-  #       hash: "5EC3F2B6946F61D6D8B9ECE112A434E245C07CC566395E79506B9DB6A4D015DA",
-  #       modules: [
-  #         %Bootloader.Application.Module{
-  #           hash: 113844003775912711108713157198168575621,
-  #           name: SimpleApp.A},
-  #         %Bootloader.Application.Module{
-  #           hash: 167008704125844426985131157525154896684,
-  #           name: SimpleApp.B}],
-  #       name: :simple_app,
-  #       priv_dir: %Bootloader.Application.PrivDir{
-  #         files: [
-  #           %Bootloader.Application.PrivDir.File{binary: nil,
-  #           hash: "8470D56547EEA6236D7C81A644CE74670CA0BBDA998E13C629EF6BB3F0D60B69",
-  #           path: "text"}],
-  #         hash: "B551B4ADCCC853CBE8F8F47E19564FBBB59B2587BC61956DAC4DD8F492AB14C9",
-  #         path: "/Users/jschneck/Developer/nerves/bootloader/test/fixtures/simple_app/_build/dev/lib/simple_app/priv"}}]
-  #
-  #   Bootloader.Overlay.load(sources, targets)
-  # end
+
 end
