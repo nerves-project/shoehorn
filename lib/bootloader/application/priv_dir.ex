@@ -93,10 +93,7 @@ defmodule Bootloader.Application.PrivDir do
       # Copy the current priv dir contents if it is not empty
       # Erlang always bases the priv dir off the first location it resolves from
       #  :code.get_path
-      IO.inspect files
       if files != [] do
-        IO.inspect path
-        IO.inspect overlay_priv_dir
         File.cp_r!(path, overlay_priv_dir)
       end
 

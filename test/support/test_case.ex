@@ -106,4 +106,3 @@ defmodule Bootloader.TestCase do
   end
 
 end
-IO.puts "Here"

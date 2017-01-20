@@ -3,7 +3,6 @@ defmodule Bootloader do
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
-    IO.inspect "Bootloader Start"
     opts = Application.get_all_env(:bootloader)
     children = [
       worker(Bootloader.ApplicationController, [opts])

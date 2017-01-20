@@ -63,7 +63,6 @@ defmodule Bootloader.Application do
               Bootloader.Application.Module.compare(s.modules, t.modules)
               |> Enum.map(fn
                 {action, mod} when action in [:modified, :inserted] ->
-                  IO.inspect mod.name
                   {_, bin, _} = :code.get_object_code(mod.name)
                   {action, %{mod | binary: bin}}
                 mod -> mod

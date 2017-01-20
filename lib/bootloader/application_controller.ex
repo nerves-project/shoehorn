@@ -62,7 +62,6 @@ defmodule Bootloader.ApplicationController do
 
   # Bootloader Application Init Phase
   def handle_info(:init, s) do
-    IO.puts "Start Init Apps: #{inspect s.init}"
     for app <- s.init do
       Application.ensure_all_started(app)
     end

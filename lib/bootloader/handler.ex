@@ -13,17 +13,10 @@ defmodule Bootloader.Handler do
   end
 
   def init() do
-    IO.puts """
-      Bootloader Handler Init
-    """
     nil
   end
 
-  def handle_application(app, response, s) do
-    IO.puts """
-      Bootloader Application Responded:
-      #{inspect response}
-    """
+  def handle_application(_app, _response, s) do
     {:noreply, s}
   end
 end
