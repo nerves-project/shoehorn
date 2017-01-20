@@ -68,8 +68,7 @@ defmodule Bootloader.OverlayTest do
   end
 
   test "Module Delete Apply", context do
-    Bootloader.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
-    |> IO.inspect
+    assert :error = Bootloader.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
   end
 
   test "PrivDir Modified Apply", context do
