@@ -10,11 +10,11 @@ defmodule Bootloader.Application do
   }
 
   def load(app) do
-    Application.load(app)
+
     applications = applications(app)
     modules = modules(app)
     priv_dir = priv_dir(app)
-    hash = hash(modules, applications, priv_dir)
+    hash = hash(modules, priv_dir)
     %__MODULE__{
       name: app,
       applications: applications,
@@ -24,9 +24,9 @@ defmodule Bootloader.Application do
     }
   end
 
-  def hash(modules, applications, priv_dir) do
+  def hash(modules, priv_dir) do
     blob =
-      (modules ++ applications ++ [priv_dir])
+      (modules ++ [priv_dir])
       |> Enum.map(& &1.hash)
       |> Enum.join
 
@@ -34,22 +34,87 @@ defmodule Bootloader.Application do
     |> Base.encode16
   end
 
-  defp applications(app) do
-    spec = Application.spec(app)
-    applications =
+  def applications(app) do
+    spec = spec(app)
+
+    application_list =
       Keyword.get(spec, :applications, []) ++
-      Keyword.get(spec, :included_applications, [])
-    applications = Enum.reject(applications, & &1 in Utils.bootloader_applications())
-    Enum.map(applications, &Bootloader.Application.load/1)
+      Keyword.get(spec, :included_applications, []) ++
+      Keyword.get(spec, :extra_applications, [])
+
+    application_list
+    |> Enum.uniq
+    # |> expand_applications(application_list)
+    |> Enum.reject(& &1 in Utils.bootloader_applications())
+
+    #|> Enum.map(&Bootloader.Application.load/1)
+  end
+
+  def expand_applications([], l), do: List.flatten(l)
+  def expand_applications(list, loaded) do
+    list =
+      Enum.map(list, &Bootloader.Application.applications/1)
+      |> List.flatten
+
+    loaded =
+      [list | loaded]
+      |> List.flatten
+      |> Enum.uniq
+    expand_applications(list, loaded)
   end
 
   def modules(app) do
-    Application.spec(app)[:modules]
-    |> Enum.map(&Bootloader.Application.Module.load/1)
+    spec(app)[:modules]
+    |> Enum.map(&Bootloader.Application.Module.load(app, &1))
   end
 
   def priv_dir(app) do
     Bootloader.Application.PrivDir.load(app)
+  end
+
+  def spec(app) do
+    try do
+      {:ok, application_spec} =
+        Path.join([ebin(app), "#{app}.app"])
+        |> :file.consult()
+
+      {_, _, application_spec} =
+        Enum.find(application_spec, fn
+          {:application, ^app, _} -> true
+          _ -> false
+        end)
+      application_spec
+    rescue
+      _ ->
+        Application.load(app)
+        Application.spec(app)
+    end
+  end
+
+  def lib_dir(app) do
+    try do
+      build_path = Mix.Project.build_path
+      |> Path.expand
+
+      lib_dir = Path.join([build_path, "lib", "#{app}"])
+      if File.dir?(lib_dir) do
+        lib_dir
+      else
+        :code.lib_dir(app)
+      end
+    rescue
+      _ ->
+       :code.lib_dir(app)
+    end
+  end
+
+  def ebin(app) do
+    build_ebin = Path.join([lib_dir(app), "ebin"])
+    if File.dir?(build_ebin) do
+      build_ebin
+    else
+      Path.join([:code.lib_dir(app), "ebin"])
+    end
   end
 
   def compare(sources, targets) when is_list(sources) and is_list(targets) do
@@ -63,8 +128,7 @@ defmodule Bootloader.Application do
               Bootloader.Application.Module.compare(s.modules, t.modules)
               |> Enum.map(fn
                 {action, mod} when action in [:modified, :inserted] ->
-                  {_, bin, _} = :code.get_object_code(mod.name)
-                  {action, %{mod | binary: bin}}
+                  {action, %{mod | binary: Bootloader.Application.Module.bin(s.name, mod)}}
                 mod -> mod
               end)
             priv_dir = Bootloader.Application.PrivDir.compare(s.priv_dir, t.priv_dir)
@@ -94,6 +158,7 @@ defmodule Bootloader.Application do
   end
   def apply({:modified, app}, overlay_path) do
     overlay_path = Path.join([overlay_path, to_string(app.name)])
+    IO.puts "Apply Overlay: #{inspect app}"
     Application.stop(app.name)
     Bootloader.Application.PrivDir.apply(app.priv_dir, overlay_path)
     Enum.each(app.modules, &Bootloader.Application.Module.apply(&1, overlay_path))

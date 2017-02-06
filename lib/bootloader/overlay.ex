@@ -8,12 +8,13 @@ defmodule Bootloader.Overlay do
     delta: [Bootloader.Application.t]
   }
 
-  def load(sources, targets) do
+  def load(sources, targets) when is_list(sources) and is_list(targets) do
     delta = Bootloader.Application.compare(sources, targets)
     %__MODULE__{
       delta: delta
     }
   end
+  def load(source, target), do: load([source], [target])
 
   def apply(%__MODULE__{} = overlay, overlay_dir) do
     overlay_path = Path.join(overlay_dir, hash(overlay.delta))

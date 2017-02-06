@@ -28,8 +28,8 @@ defmodule Bootloader.Application.PrivDir do
 
   def path(app) do
     path =
-      :code.priv_dir(app)
-      |> to_string
+      Bootloader.Application.lib_dir(app)
+      |> Path.join("priv")
     if File.dir?(path) do
       path
     else
@@ -38,9 +38,11 @@ defmodule Bootloader.Application.PrivDir do
   end
 
   def exists?(app) do
-    app
-    |> path()
-    |> File.dir?()
+    path =
+      app
+      |> path()
+
+    path != nil and File.dir?(path)
   end
 
   def hash(nil) do

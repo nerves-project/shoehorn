@@ -35,8 +35,10 @@ defmodule Bootloader.OverlayTest do
     Bootloader.Utils.rpc(source_node, :application, :start, [:simple_app])
     Bootloader.Utils.rpc(target_node, :application, :start, [:simple_app])
 
+
     sources =
       Bootloader.Utils.rpc(source_node, Bootloader.ApplicationController, :applications, [])
+
 
     targets =
       Bootloader.Utils.rpc(target_node, Bootloader.ApplicationController, :applications, [])
@@ -120,12 +122,17 @@ defmodule Bootloader.OverlayTest do
   end
 
   defp vm_args() do
-    '-setcookie #{:erlang.get_cookie()}'
+    path =
+      :code.get_path()
+      |> Enum.map(&to_string/1)
+      |> Enum.map(&"-pa #{&1}")
+      |> Enum.join(" ")
+    '-setcookie #{:erlang.get_cookie()} -mode embedded #{path}'
   end
 
   defp spawn_node(node_host, config) do
     {:ok, node} = :slave.start('127.0.0.1', node_name(node_host), vm_args())
-    add_code_paths(node)
+    #add_code_paths(node)
     transfer_config(node, config)
     ensure_applications_started(node)
     {:ok, node}
@@ -146,7 +153,19 @@ defmodule Bootloader.OverlayTest do
   end
 
   defp ensure_applications_started(node) do
-    Bootloader.Utils.rpc(node, Application, :ensure_all_started, [:mix])
+    IO.puts "Load applications"
+    Bootloader.Utils.rpc(node, :code, :get_path, [])
+    |> IO.inspect(limit: :infinity)
+
+    Bootloader.Utils.rpc(node, :application, :load, [:mix])
+    Bootloader.Utils.rpc(node, :application, :load, [:elixir])
+    Bootloader.Utils.rpc(node, :code, :get_object_code, [Elixir])
+    |> IO.inspect
+    Bootloader.Utils.rpc(node, :application, :loaded_applications, [])
+    |> IO.inspect
+    Bootloader.Utils.rpc(node, :application, :ensure_all_started, [:mix])
+
+    #Bootloader.Utils.rpc(node, Application, :ensure_all_started, [:mix])
     Bootloader.Utils.rpc(node, Mix, :env, [Mix.env()])
     for {app_name, _, _} <- Application.loaded_applications do
       Bootloader.Utils.rpc(node, Application, :ensure_all_started, [app_name])

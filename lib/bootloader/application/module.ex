@@ -7,27 +7,57 @@ defmodule Bootloader.Application.Module do
     binary: binary()
   }
 
-  def load(mod) do
+  def load(app, mod) do
     %__MODULE__{
       name: mod,
-      hash: hash(mod)
+      hash: hash(app, mod)
     }
   end
 
-  defp hash(mod) do
-    case mod.module_info(:attributes)[:vsn] do
-      [vsn] -> vsn
-      _ -> mod.module_info(:md5) |> Base.encode16
+  def hash(app, mod) do
+    attributes(app, mod)[:vsn]
+    |> List.first
+  end
+
+  def attributes(app, mod) do
+    try do
+      beam =
+        beam(app, mod)
+        |> Kernel.to_charlist()
+      {:ok, {_, [attributes: attributes]}} = :beam_lib.chunks(beam, [:attributes])
+      attributes
+    rescue
+      _ ->
+        mod.module_info(:attributes)
     end
   end
 
+  def bin(app, mod) do
+    try do
+      beam(app, mod)
+      |> File.read!()
+    rescue
+      _ ->
+        {_, bin, _} = :code.get_object_code(mod.name)
+        bin
+    end
+  end
+
+  def beam(app, mod) do
+    Bootloader.Application.ebin(app)
+    |> Path.join("#{mod}.beam")
+  end
+
   def compare(sources, targets) when is_list(sources) and is_list(targets) do
+    IO.puts "IN HERE!!!!"
     modified =
       Enum.reduce(sources, [], fn(s, acc) ->
         t = Enum.find(targets, & &1.name == s.name)
         case compare(s, t) do
           {:noop, _} -> acc
-          modification -> [modification | acc]
+          modification ->
+            IO.inspect modification
+            [modification | acc]
         end
       end)
     deleted =
