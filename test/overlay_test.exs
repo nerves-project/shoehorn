@@ -32,8 +32,8 @@ defmodule Bootloader.OverlayTest do
     add_code_path(source_node, Path.join([source_path, "ebin"]))
     add_code_path(target_node, Path.join([target_path, "ebin"]))
 
-    Bootloader.Utils.rpc(source_node, :application, :start, [:simple_app])
-    Bootloader.Utils.rpc(target_node, :application, :start, [:simple_app])
+    Bootloader.Utils.rpc(source_node, :application, :start, [:bootloader])
+    Bootloader.Utils.rpc(target_node, :application, :start, [:bootloader])
 
 
     sources =
@@ -69,9 +69,12 @@ defmodule Bootloader.OverlayTest do
       Bootloader.Utils.rpc(context.target_node, SimpleApp.Inserted, :ping, [])
   end
 
-  test "Module Delete Apply", context do
-    assert :error = Bootloader.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
-  end
+  # TODO: Testing module deletion requires that the spawned vm is running in embedded mode
+  #  I can't figure out how to do this right now though, it seems that there
+  #  is a bug with starting Elixir after VM boot when in embedded mode
+  # test "Module Delete Apply", context do
+  #   assert :error = Bootloader.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
+  # end
 
   test "PrivDir Modified Apply", context do
     target_priv_dir =  Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
@@ -127,12 +130,12 @@ defmodule Bootloader.OverlayTest do
       |> Enum.map(&to_string/1)
       |> Enum.map(&"-pa #{&1}")
       |> Enum.join(" ")
-    '-setcookie #{:erlang.get_cookie()} -mode embedded #{path}'
+    '-setcookie #{:erlang.get_cookie()} -mode interactive #{path}'
   end
 
   defp spawn_node(node_host, config) do
     {:ok, node} = :slave.start('127.0.0.1', node_name(node_host), vm_args())
-    #add_code_paths(node)
+    add_code_paths(node)
     transfer_config(node, config)
     ensure_applications_started(node)
     {:ok, node}
@@ -153,21 +156,13 @@ defmodule Bootloader.OverlayTest do
   end
 
   defp ensure_applications_started(node) do
-    IO.puts "Load applications"
-    Bootloader.Utils.rpc(node, :code, :get_path, [])
-    |> IO.inspect(limit: :infinity)
-
-    Bootloader.Utils.rpc(node, :application, :load, [:mix])
-    Bootloader.Utils.rpc(node, :application, :load, [:elixir])
-    Bootloader.Utils.rpc(node, :code, :get_object_code, [Elixir])
-    |> IO.inspect
-    Bootloader.Utils.rpc(node, :application, :loaded_applications, [])
-    |> IO.inspect
-    Bootloader.Utils.rpc(node, :application, :ensure_all_started, [:mix])
-
-    #Bootloader.Utils.rpc(node, Application, :ensure_all_started, [:mix])
+    Bootloader.Utils.rpc(node, Application, :ensure_all_started, [:mix])
     Bootloader.Utils.rpc(node, Mix, :env, [Mix.env()])
-    for {app_name, _, _} <- Application.loaded_applications do
+    apps = Enum.reject(Application.loaded_applications, fn
+      {:bootloader, _, _} -> true
+      _ -> false
+    end)
+    for {app_name, _, _} <- apps do
       Bootloader.Utils.rpc(node, Application, :ensure_all_started, [app_name])
     end
   end

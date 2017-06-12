@@ -49,14 +49,12 @@ defmodule Bootloader.Application.Module do
   end
 
   def compare(sources, targets) when is_list(sources) and is_list(targets) do
-    IO.puts "IN HERE!!!!"
     modified =
       Enum.reduce(sources, [], fn(s, acc) ->
         t = Enum.find(targets, & &1.name == s.name)
         case compare(s, t) do
           {:noop, _} -> acc
           modification ->
-            IO.inspect modification
             [modification | acc]
         end
       end)

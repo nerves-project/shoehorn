@@ -24,7 +24,7 @@ defmodule Bootloader.ApplicationController do
   end
 
   def init(opts) do
-    app = opts[:app]
+    app = opts[:app] || :bootloader
     init =  opts[:init] || []
     overlay_path = opts[:overlay_path]
     handler = opts[:handler] || Bootloader.Handler
@@ -33,7 +33,7 @@ defmodule Bootloader.ApplicationController do
       init: init,
       app: app,
       hash: nil,
-      applications: nil,
+      applications: [],
       overlay_path: overlay_path,
       handler: handler,
       handler_state: handler.init()
@@ -85,7 +85,7 @@ defmodule Bootloader.ApplicationController do
 
   defp build_hash(application_list) do
     application_list
-    |> Bootloader.Application.expand_applications(application_list)
+    #|> Bootloader.Application.expand_applications(application_list)
     |> Enum.map(&Bootloader.Application.load/1)
     |> Enum.map(& &1.hash)
     |> Enum.join
@@ -94,7 +94,7 @@ defmodule Bootloader.ApplicationController do
 
   defp build_applications(application_list) do
     application_list
-    |> Bootloader.Application.expand_applications(application_list)
+    #|> Bootloader.Application.expand_applications(application_list)
     |> Enum.map(&Bootloader.Application.load/1)
   end
 

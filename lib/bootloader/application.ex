@@ -10,7 +10,6 @@ defmodule Bootloader.Application do
   }
 
   def load(app) do
-
     applications = applications(app)
     modules = modules(app)
     priv_dir = priv_dir(app)
@@ -36,7 +35,6 @@ defmodule Bootloader.Application do
 
   def applications(app) do
     spec = spec(app)
-
     application_list =
       Keyword.get(spec, :applications, []) ++
       Keyword.get(spec, :included_applications, []) ++
@@ -84,6 +82,7 @@ defmodule Bootloader.Application do
           _ -> false
         end)
       application_spec
+
     rescue
       _ ->
         Application.load(app)
@@ -158,7 +157,6 @@ defmodule Bootloader.Application do
   end
   def apply({:modified, app}, overlay_path) do
     overlay_path = Path.join([overlay_path, to_string(app.name)])
-    IO.puts "Apply Overlay: #{inspect app}"
     Application.stop(app.name)
     Bootloader.Application.PrivDir.apply(app.priv_dir, overlay_path)
     Enum.each(app.modules, &Bootloader.Application.Module.apply(&1, overlay_path))
