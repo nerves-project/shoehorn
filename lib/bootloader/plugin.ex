@@ -89,10 +89,4 @@ defmodule Bootloader.Plugin do
     File.cp(Path.join(rel_dir, "bootloader.boot"),
                             Path.join([app_release.profile.output_dir, "bin", "bootloader.boot"]))
   end
-
-  defp filter_app_list(apps) do
-    {_, apps} =
-      Enum.split_with(apps, & &1 == :bootloader)
-      apps
-  end
 end
