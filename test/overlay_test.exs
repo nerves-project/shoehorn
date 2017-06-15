@@ -1,5 +1,5 @@
 defmodule Bootloader.OverlayTest do
-  use Bootloader.TestCase, async: true
+  use Bootloader.TestCase, async: false
 
   setup_all do
     overlay_fixture_path =
@@ -34,17 +34,22 @@ defmodule Bootloader.OverlayTest do
 
     Bootloader.Utils.rpc(source_node, :application, :start, [:bootloader])
     Bootloader.Utils.rpc(target_node, :application, :start, [:bootloader])
+    opts = [app: :simple_app, overlay_dir: overlay_dir]
 
+    Bootloader.Utils.rpc(source_node, Bootloader.ApplicationController, :start_link, [opts])
+    Bootloader.Utils.rpc(target_node, Bootloader.ApplicationController, :start_link, [opts])
 
     sources =
       Bootloader.Utils.rpc(source_node, Bootloader.ApplicationController, :applications, [])
-
+      #|> IO.inspect(label: "Sources")
 
     targets =
       Bootloader.Utils.rpc(target_node, Bootloader.ApplicationController, :applications, [])
+      #|> IO.inspect(label: "Targets")
 
     overlay =
       Bootloader.Utils.rpc(source_node, Bootloader.Overlay, :load, [sources, targets])
+      #|> IO.inspect
 
     overlay_dir = Path.join([target_path, "overlays"])
     assert :ok =
