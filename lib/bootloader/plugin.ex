@@ -6,11 +6,21 @@ defmodule Bootloader.Plugin do
   alias Mix.Releases.Utils, as: ReleaseUtils
 
   def before_assembly(release), do: before_assembly(release, [])
-  def before_assembly(release, _opts), do: release
+  def before_assembly(release, _opts) do
+    generate_boot_script(release)
+    {bootloader, apps} =
+      Enum.split_with(release.applications, & &1.name == :bootloader)
+    apps =
+      case bootloader do
+        [bootloader] ->
+          [%{bootloader | start_type: :none} | apps]
+        _ -> apps
+      end
+    %{release | applications: apps}
+  end
 
   def after_assembly(release), do: after_assembly(release, [])
   def after_assembly(%Release{} = release, _opts) do
-    generate_boot_script(release)
     release
   end
 
@@ -18,7 +28,6 @@ defmodule Bootloader.Plugin do
   def after_package(release, _opts), do: release
 
   def generate_boot_script(app_release) do
-
     Application.load(:bootloader)
     runtime_spec = Application.spec(:bootloader)
 
@@ -79,5 +88,11 @@ defmodule Bootloader.Plugin do
 
     File.cp(Path.join(rel_dir, "bootloader.boot"),
                             Path.join([app_release.profile.output_dir, "bin", "bootloader.boot"]))
+  end
+
+  defp filter_app_list(apps) do
+    {_, apps} =
+      Enum.split_with(apps, & &1 == :bootloader)
+      apps
   end
 end
