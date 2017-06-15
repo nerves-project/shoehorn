@@ -29,7 +29,7 @@ defmodule SimpleApp.B do
   ## Examples
 
       iex> SimpleApp.hello
-      :world
+      :again
 
   """
   def hello do

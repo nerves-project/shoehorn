@@ -7,15 +7,7 @@ defmodule Bootloader.Plugin do
 
   def before_assembly(release), do: before_assembly(release, [])
   def before_assembly(release, _opts) do
-    {bootloader, apps} =
-      Enum.split_with(release.applications, & &1.name == :bootloader)
-    apps =
-      case bootloader do
-        [bootloader] ->
-          [%{bootloader | start_type: :none} | apps]
-        _ -> apps
-      end
-    %{release | applications: apps}
+    release
   end
 
   def after_assembly(release), do: after_assembly(release, [])
