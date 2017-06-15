@@ -20,7 +20,6 @@ defmodule Bootloader.Mixfile do
   defp elixirc_paths(_),     do: ["lib"]
 
   defp deps do
-    #[{:distillery, "~> 1.0", runtime: false}]
-    [{:distillery, path: "../distillery", runtime: false}]
+    [{:distillery, "~> 1.0", runtime: false}]
   end
 end
