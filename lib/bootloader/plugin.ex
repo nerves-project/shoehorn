@@ -7,7 +7,6 @@ defmodule Bootloader.Plugin do
 
   def before_assembly(release), do: before_assembly(release, [])
   def before_assembly(release, _opts) do
-    generate_boot_script(release)
     {bootloader, apps} =
       Enum.split_with(release.applications, & &1.name == :bootloader)
     apps =
@@ -21,6 +20,7 @@ defmodule Bootloader.Plugin do
 
   def after_assembly(release), do: after_assembly(release, [])
   def after_assembly(%Release{} = release, _opts) do
+    generate_boot_script(release)
     release
   end
 
@@ -49,6 +49,8 @@ defmodule Bootloader.Plugin do
 
     start_apps = Enum.filter(app_release.applications, fn %App{name: n} ->
                                n in Utils.bootloader_applications end)
+    {[bootloader], start_apps} = Enum.split_with(start_apps, & &1.name == :bootloader)
+    start_apps = [%{bootloader | start_type: nil} | start_apps]
     load_apps = Enum.reject(app_release.applications,  fn %App{name: n} ->
                                n in Utils.bootloader_applications end)
     load_apps =
