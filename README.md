@@ -49,12 +49,14 @@ iex(simple_app@127.0.0.1)1> Application.started_applications
 ```
 
 Now lets configure `bootloader` to do something more interesting by adding some
-general configuration. First, lets have it start our application.
+general configuration.
+
+Lets have it start our application and initialize some apps before our app starts
 ```elixir
 # config/config.exs
 
 config :bootloader,
   overlay_path: "/tmp/erl_bootloader",
-  init: [],
+  init: [:runtime_app],
   app: :simple_app
 ```
