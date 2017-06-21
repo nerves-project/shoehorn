@@ -1,16 +1,8 @@
 # Bootloader
+
+[![Hex version](https://img.shields.io/hexpm/v/bootloader.svg "Hex version")](https://hex.pm/packages/bootloader)
+
 Bootloader provides full control over the application lifecycle in Elixir.
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `bootloader` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [{:bootloader, "~> 0.1.0"}]
-end
-```
 
 ## Usage
 
