@@ -10,6 +10,7 @@ defmodule Bootloader.Mixfile do
      elixirc_paths: elixirc_paths(Mix.env),
      description: description(),
      package: package(),
+     source_url: "https://github.com/nerves-project/bootloader",
      deps: deps()]
   end
 
@@ -33,7 +34,7 @@ defmodule Bootloader.Mixfile do
 
   defp package do
     [maintainers: ["Justin Schneck"],
-     licenses: ["Apache 2.0"],
-     links: %{"Github" => "https://github.com/nerves-project/bootloader"}]
+     licenses: ["Apache-2.0"],
+     links: %{"GitHub" => "https://github.com/nerves-project/bootloader"}]
   end
 end
