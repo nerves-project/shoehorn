@@ -28,7 +28,7 @@ defmodule Bootloader.Plugin do
 
     release_apps = ReleaseUtils.get_apps(release)
     release = %{release | :applications => release_apps}
-    rel_dir = Path.join(["#{app_release.profile.output_dir}", "releases", "#{release.version}"])
+    rel_dir = Path.join(["#{app_release.profile.output_dir}", "releases", "#{app_release.version}"])
 
     erts_vsn =
     case app_release.profile.include_erts do
@@ -78,7 +78,15 @@ defmodule Bootloader.Plugin do
                :no_module_tests,
                :silent]
 
-    :systools.make_script('bootloader', options)
+    case :systools.make_script('bootloader', options) do
+      {:error, _, e} ->
+        Logger.error "Bootloader failed: " <>
+          inspect(e) <>
+          "\n#{Exception.format_stacktrace(System.stacktrace)}"
+          exit({:shutdown, 1})
+      _ ->
+        Logger.success "Generated Bootloader Boot Script"
+    end
 
     File.cp(Path.join(rel_dir, "bootloader.boot"),
                             Path.join([app_release.profile.output_dir, "bin", "bootloader.boot"]))

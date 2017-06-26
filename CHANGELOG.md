@@ -1,6 +1,8 @@
 # Changelog
 
-## v0.2.0-dev
+## v0.1.1
+* Bug Fixes
+  * Fixed issue with release path being constructed incorrectly.
 
 ## v0.1.0
 
