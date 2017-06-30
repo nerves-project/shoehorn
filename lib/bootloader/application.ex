@@ -164,4 +164,12 @@ defmodule Bootloader.Application do
     #  for more a strategy, like rolling the code path back.
     Application.start(app.name)
   end
+
+  def exists?(nil), do: false
+  def exists?(app) do
+    case spec(app) do
+      nil -> false
+      _ -> true
+    end
+  end
 end
