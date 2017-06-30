@@ -2,7 +2,6 @@ defmodule Bootloader.ApplicationController do
   use GenServer
   @timeout 30_000
   alias Bootloader.Utils
-  require Logger
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -29,7 +28,7 @@ defmodule Bootloader.ApplicationController do
     init =  opts[:init] || []
     {init, rejected} = Enum.split_with(init, &Bootloader.Application.exists?/1)
     Enum.each(rejected, fn(app) ->
-      Logger.error "[Bootloader] Init app #{inspect app} undefined. Skipping"
+      IO.puts "[Bootloader] Init app #{inspect app} undefined. Skipping"
     end)
     overlay_path = opts[:overlay_path]
     handler = opts[:handler] || Bootloader.Handler
@@ -104,14 +103,14 @@ defmodule Bootloader.ApplicationController do
   end
 
   def app(nil) do
-    Logger.debug "[Bootloader] app undefined. Finished booting"
+    IO.puts "[Bootloader] app undefined. Finished booting"
     :bootloader
   end
   def app(app) do
     if Bootloader.Application.exists?(app) do
       app
     else
-      Logger.debug "[Bootloader] app undefined. Finished booting"
+      IO.puts "[Bootloader] app undefined. Finished booting"
       :bootloader
     end
   end
