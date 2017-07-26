@@ -85,7 +85,13 @@ defmodule Bootloader.Plugin do
           "\n#{Exception.format_stacktrace(System.stacktrace)}"
           exit({:shutdown, 1})
       _ ->
-        Logger.success "Generated Bootloader Boot Script"
+        %Release{profile: %{output_dir: output_dir}, name: app} = app_release
+        relative_output_dir = Path.relative_to_cwd(output_dir)
+        Logger.success """
+        Generated Bootloader Boot Script
+            Run using bootloader:
+              Interactive: #{relative_output_dir}/bin/#{app} console_boot bootloader
+        """
     end
 
     File.cp(Path.join(rel_dir, "bootloader.boot"),
