@@ -91,20 +91,7 @@ defmodule Bootloader.Application do
   end
 
   def lib_dir(app) do
-    try do
-      build_path = Mix.Project.build_path
-      |> Path.expand
-
-      lib_dir = Path.join([build_path, "lib", "#{app}"])
-      if File.dir?(lib_dir) do
-        lib_dir
-      else
-        :code.lib_dir(app)
-      end
-    rescue
-      _ ->
-       :code.lib_dir(app)
-    end
+    :code.lib_dir(app)
   end
 
   def ebin(app) do
