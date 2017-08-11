@@ -19,7 +19,7 @@ Include `bootloader` into your application release plugins.
 
 release :simple_app do
   set version: current_version(:simple_app)
-  plugin Bootloader.Plugin
+  plugin Bootloader
 end
 ```
 
