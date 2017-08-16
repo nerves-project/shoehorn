@@ -1,6 +1,6 @@
 # Bootloader
 
-[![Build Status](https://travis-ci.org/nerves-project/bootloader.svg?branch=master)](https://travis-ci.org/nerves-project/bootloader)
+[![CircleCI](https://circleci.com/gh/nerves-project/bootloader.svg?style=svg)](https://circleci.com/gh/nerves-project/bootloader)
 [![Hex version](https://img.shields.io/hexpm/v/bootloader.svg "Hex version")](https://hex.pm/packages/bootloader)
 
 Bootloader provides full control over the application lifecycle in Elixir.
