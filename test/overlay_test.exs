@@ -22,6 +22,7 @@ defmodule Bootloader.OverlayTest do
       src = Path.join(path, "src")
       compile_path(src, ebin)
     end)
+    :os.cmd 'epmd -daemon'
     {:ok, node} = :net_kernel.start([:"host@127.0.0.1"])
     overlay_dir = Path.join([target_path, "overlays"])
 
