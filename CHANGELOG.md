@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.3
+* Bug Fixes
+  * Add explicit functions for each of the Distillery Plugin behaviour callbacks.
+
 ## v0.1.2
 * Bug Fixes
   * Only look in `:code.lib_dir()` for the Application lib dir instead of involving `mix`

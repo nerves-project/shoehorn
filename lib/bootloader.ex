@@ -31,9 +31,25 @@ defmodule Bootloader do
   def boot(_), do: []
 
   # Distillery Behaviour
+  def before_assembly(%Release{} = release, _opts) do
+    release
+  end
+
   def after_assembly(%Release{} = release, _opts) do
     generate_boot_script(release)
     release
+  end
+
+  def before_package(%Release{} = release, _opts) do
+    release
+  end
+
+  def after_package(%Release{} = release, _opts) do
+    release
+  end
+
+  def after_cleanup(_args, _opts) do
+    :noop
   end
 
   def generate_boot_script(app_release) do
