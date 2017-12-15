@@ -136,10 +136,10 @@ defmodule Bootloader.Application do
   def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
   def compare(s, _), do: {:modified, s}
 
-  def apply({:inserted, _app}) do
+  def apply({:inserted, _app}, overlay_path) do
 
   end
-  def apply({:deleted, _app}) do
+  def apply({:deleted, _app}, overlay_path) do
 
   end
   def apply({:modified, app}, overlay_path) do
