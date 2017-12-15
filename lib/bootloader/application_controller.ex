@@ -26,13 +26,10 @@ defmodule Bootloader.ApplicationController do
   def init(opts) do
     app = app(opts[:app])
     init =  opts[:init] || []
-    {init, rejected} = Enum.split_with(init, &Bootloader.Application.exists?/1)
-    Enum.each(rejected, fn(app) ->
-      IO.puts "[Bootloader] Init app #{inspect app} undefined. Skipping"
-    end)
-    overlay_path = opts[:overlay_path]
+    init = reject_missing_apps(init)
+    overlay_path = opts[:overlay_path] || "/tmp/erlang/bootloader"
     handler = opts[:handler] || Bootloader.Handler
-
+    Enum.each([app | filter_apps(init)], &Application.load/1)
     s = %{
       init: init,
       app: app,
@@ -68,7 +65,23 @@ defmodule Bootloader.ApplicationController do
   # Bootloader Application Init Phase
   def handle_info(:init, s) do
     for app <- s.init do
-      Application.ensure_all_started(app)
+      case app do
+        {m, f, a} when is_list(a)-> 
+          apply(m, f, a)
+        {m, a} when is_list(a) -> 
+          apply(m, :start_link, a)
+        app when is_atom(app) -> 
+          Application.ensure_all_started(app)
+        init_call ->
+          IO.puts """
+          Bootloader encountered an error while trying to call #{inspect init_call}
+          during initialization. The argument needs to be formated as
+          
+          {Module, :function, [args]}
+          {Module, [args]}
+          :application
+          """
+      end
     end
     send(self(), :app)
     {:noreply, s}
@@ -81,7 +94,7 @@ defmodule Bootloader.ApplicationController do
   end
 
   defp build_cache(s) do
-    applications_list = [s.app | s.init]
+    applications_list = [s.app | filter_apps(s.init)]
     hash = build_hash(applications_list)
     applications = build_applications(applications_list)
     %{s | hash: hash, applications: applications}
@@ -113,5 +126,25 @@ defmodule Bootloader.ApplicationController do
       IO.puts "[Bootloader] app undefined. Finished booting"
       :bootloader
     end
+  end
+
+  def filter_apps(apps) do
+    Enum.filter(apps, fn
+      app when is_atom(app) -> true
+      _ -> false
+    end)
+  end
+
+  def reject_missing_apps(apps) do
+    Enum.filter(apps, fn
+      app when is_atom(app) -> 
+        if Bootloader.Application.exists?(app) do
+          true
+        else
+          IO.puts "[Bootloader] Init app #{inspect app} undefined. Skipping"
+          false
+        end
+      _ -> true
+    end)
   end
 end
