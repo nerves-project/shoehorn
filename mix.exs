@@ -3,7 +3,7 @@ defmodule Shoehorn.Mixfile do
 
   def project do
     [app: :shoehorn,
-     version: "0.1.3",
+     version: "0.2.0-dev",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -29,7 +29,7 @@ defmodule Shoehorn.Mixfile do
 
   defp description do
     """
-    Shoehorn for the Erlang VM
+    Get your boot on.
     """
   end
 
