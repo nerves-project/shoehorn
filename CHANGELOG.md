@@ -1,9 +1,12 @@
 # Changelog
 
-## v0.2.0-dev
+## v0.2.0
 
   Renamed project Shoehorn.
   It became hard to discuss this project with the name Bootloader.
+
+  * Enhancements
+    * `:init` list can contain `:application`, `{m, f, a}`, or `{Module, [args]}`.
 
 ## v0.1.3
 
