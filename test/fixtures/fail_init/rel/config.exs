@@ -40,5 +40,5 @@ end
 
 release :fail_init do
   set version: current_version(:fail_init)
-  plugin Bootloader.Plugin
+  plugin Shoehorn.Plugin
 end

@@ -1,5 +1,5 @@
 {application,simple_app,
-             [{applications,[kernel,stdlib,elixir,bootloader]},
+             [{applications,[kernel,stdlib,elixir,shoehorn]},
               {description,"simple_app"},
               {modules,['Elixir.SimpleApp.Modified','Elixir.SimpleApp.Deleted']},
               {registered,[]},

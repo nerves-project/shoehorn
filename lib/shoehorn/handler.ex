@@ -1,4 +1,4 @@
-defmodule Bootloader.Handler do
+defmodule Shoehorn.Handler do
 
   @callback init() :: any
 
@@ -8,7 +8,7 @@ defmodule Bootloader.Handler do
 
   defmacro __using__(_) do
     quote do
-      @behaviour Bootloader.Handler
+      @behaviour Shoehorn.Handler
     end
   end
 

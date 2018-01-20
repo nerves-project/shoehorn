@@ -1,8 +1,8 @@
-defmodule Bootloader.Mixfile do
+defmodule Shoehorn.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :bootloader,
+    [app: :shoehorn,
      version: "0.1.3",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
@@ -10,13 +10,13 @@ defmodule Bootloader.Mixfile do
      elixirc_paths: elixirc_paths(Mix.env),
      description: description(),
      package: package(),
-     source_url: "https://github.com/nerves-project/bootloader",
+     source_url: "https://github.com/nerves-project/shoehorn",
      deps: deps()]
   end
 
   def application do
     [extra_applications: [:crypto],
-     mod: {Bootloader, []}]
+     mod: {Shoehorn, []}]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
@@ -29,13 +29,13 @@ defmodule Bootloader.Mixfile do
 
   defp description do
     """
-    Bootloader for the Erlang VM
+    Shoehorn for the Erlang VM
     """
   end
 
   defp package do
     [maintainers: ["Justin Schneck"],
      licenses: ["Apache-2.0"],
-     links: %{"GitHub" => "https://github.com/nerves-project/bootloader"}]
+     links: %{"GitHub" => "https://github.com/nerves-project/shoehorn"}]
   end
 end

@@ -1,4 +1,4 @@
 use Mix.Config
 
-config :bootloader,
+config :shoehorn,
   app: :simple_app

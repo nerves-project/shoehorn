@@ -28,6 +28,6 @@ defmodule SimpleApp.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:bootloader, path: "../../../."}]
+    [{:shoehorn, path: "../../../."}]
   end
 end

@@ -1,5 +1,5 @@
-defmodule Bootloader.OverlayTest do
-  use Bootloader.TestCase, async: false
+defmodule Shoehorn.OverlayTest do
+  use Shoehorn.TestCase, async: false
 
   setup_all do
     overlay_fixture_path =
@@ -33,30 +33,30 @@ defmodule Bootloader.OverlayTest do
     add_code_path(source_node, Path.join([source_path, "ebin"]))
     add_code_path(target_node, Path.join([target_path, "ebin"]))
 
-    Bootloader.Utils.rpc(source_node, :application, :start, [:bootloader])
-    Bootloader.Utils.rpc(target_node, :application, :start, [:bootloader])
+    Shoehorn.Utils.rpc(source_node, :application, :start, [:shoehorn])
+    Shoehorn.Utils.rpc(target_node, :application, :start, [:shoehorn])
     opts = [app: :simple_app, overlay_dir: overlay_dir]
 
-    Bootloader.Utils.rpc(source_node, Bootloader.ApplicationController, :start_link, [opts])
-    Bootloader.Utils.rpc(target_node, Bootloader.ApplicationController, :start_link, [opts])
+    Shoehorn.Utils.rpc(source_node, Shoehorn.ApplicationController, :start_link, [opts])
+    Shoehorn.Utils.rpc(target_node, Shoehorn.ApplicationController, :start_link, [opts])
 
     sources =
-      Bootloader.Utils.rpc(source_node, Bootloader.ApplicationController, :applications, [])
+      Shoehorn.Utils.rpc(source_node, Shoehorn.ApplicationController, :applications, [])
       #|> IO.inspect(label: "Sources")
 
     targets =
-      Bootloader.Utils.rpc(target_node, Bootloader.ApplicationController, :applications, [])
+      Shoehorn.Utils.rpc(target_node, Shoehorn.ApplicationController, :applications, [])
       #|> IO.inspect(label: "Targets")
 
     overlay =
-      Bootloader.Utils.rpc(source_node, Bootloader.Overlay, :load, [sources, targets])
+      Shoehorn.Utils.rpc(source_node, Shoehorn.Overlay, :load, [sources, targets])
       #|> IO.inspect
 
     overlay_dir = Path.join([target_path, "overlays"])
     assert :ok =
-      Bootloader.Utils.rpc(
+      Shoehorn.Utils.rpc(
         target_node,
-        Bootloader.Overlay,
+        Shoehorn.Overlay,
         :apply,
         [overlay, overlay_dir])
 
@@ -67,45 +67,45 @@ defmodule Bootloader.OverlayTest do
 
   test "Module Modified Apply", context do
     assert {SimpleApp.Modified, :source, :pong} ==
-      Bootloader.Utils.rpc(context.target_node, SimpleApp.Modified, :ping, [])
+      Shoehorn.Utils.rpc(context.target_node, SimpleApp.Modified, :ping, [])
   end
 
   test "Module Insert Apply", context do
     assert {SimpleApp.Inserted, :source, :pong} ==
-      Bootloader.Utils.rpc(context.target_node, SimpleApp.Inserted, :ping, [])
+      Shoehorn.Utils.rpc(context.target_node, SimpleApp.Inserted, :ping, [])
   end
 
   # TODO: Testing module deletion requires that the spawned vm is running in embedded mode
   #  I can't figure out how to do this right now though, it seems that there
   #  is a bug with starting Elixir after VM boot when in embedded mode
   # test "Module Delete Apply", context do
-  #   assert :error = Bootloader.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
+  #   assert :error = Shoehorn.Utils.rpc(context.target_node, SimpleApp.Deleted, :ping, [])
   # end
 
   test "PrivDir Modified Apply", context do
-    target_priv_dir =  Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+    target_priv_dir =  Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
 
     file_modified = Path.join([target_priv_dir, "file_modified"])
     source_file_modified =
       Path.join([context.source, "priv", "file_modified"])
       |> File.read!
-    assert Bootloader.Utils.rpc(context.target_node, File, :read!, [file_modified]) == source_file_modified
+    assert Shoehorn.Utils.rpc(context.target_node, File, :read!, [file_modified]) == source_file_modified
   end
 
   test "PrivDir Insert Apply", context do
-    target_priv_dir =  Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+    target_priv_dir =  Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
 
     file_inserted = Path.join([target_priv_dir, "file_inserted"])
     source_file_inserted =
       Path.join([context.source, "priv", "file_inserted"])
       |> File.read!
-    assert Bootloader.Utils.rpc(context.target_node, File, :read!, [file_inserted]) == source_file_inserted
+    assert Shoehorn.Utils.rpc(context.target_node, File, :read!, [file_inserted]) == source_file_inserted
   end
 
   test "PrivDir Deleted Apply", context do
-    target_priv_dir = Bootloader.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+    target_priv_dir = Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
     file_deleted = Path.join([target_priv_dir, "file_deleted"])
-    assert {:error, _} = Bootloader.Utils.rpc(context.target_node, File, :read, [file_deleted])
+    assert {:error, _} = Shoehorn.Utils.rpc(context.target_node, File, :read, [file_deleted])
   end
 
   defp remove_beams(ebin) do
@@ -148,28 +148,28 @@ defmodule Bootloader.OverlayTest do
   end
 
   defp transfer_config(node, config) do
-    Bootloader.Utils.rpc(node, Application, :put_env, [:bootloader, :app, :simple_app])
-    Bootloader.Utils.rpc(node, Application, :put_env, [:bootloader, :overlay_path, config])
+    Shoehorn.Utils.rpc(node, Application, :put_env, [:shoehorn, :app, :simple_app])
+    Shoehorn.Utils.rpc(node, Application, :put_env, [:shoehorn, :overlay_path, config])
   end
 
   defp add_code_paths(node) do
-    Bootloader.Utils.rpc(node, :code, :add_paths, [:code.get_path()])
+    Shoehorn.Utils.rpc(node, :code, :add_paths, [:code.get_path()])
   end
 
   defp add_code_path(node, path) do
     path = String.to_char_list(path)
-    Bootloader.Utils.rpc(node, :code, :add_path, [path])
+    Shoehorn.Utils.rpc(node, :code, :add_path, [path])
   end
 
   defp ensure_applications_started(node) do
-    Bootloader.Utils.rpc(node, Application, :ensure_all_started, [:mix])
-    Bootloader.Utils.rpc(node, Mix, :env, [Mix.env()])
+    Shoehorn.Utils.rpc(node, Application, :ensure_all_started, [:mix])
+    Shoehorn.Utils.rpc(node, Mix, :env, [Mix.env()])
     apps = Enum.reject(Application.loaded_applications, fn
-      {:bootloader, _, _} -> true
+      {:shoehorn, _, _} -> true
       _ -> false
     end)
     for {app_name, _, _} <- apps do
-      Bootloader.Utils.rpc(node, Application, :ensure_all_started, [app_name])
+      Shoehorn.Utils.rpc(node, Application, :ensure_all_started, [app_name])
     end
   end
 

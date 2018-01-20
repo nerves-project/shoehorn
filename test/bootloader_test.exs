@@ -1,8 +1,8 @@
 Code.require_file("test/mix_test_helper.exs")
 
-defmodule BootloaderTest do
-  use Bootloader.TestCase, async: false
-  doctest Bootloader
+defmodule ShoehornTest do
+  use Shoehorn.TestCase, async: false
+  doctest Shoehorn
 
   import MixTestHelper
 
@@ -26,7 +26,7 @@ defmodule BootloaderTest do
 
   @tag :expensive
   @tag timeout: 60_000 * 5 # 5m
-  test "Can build and release with Bootloader" do
+  test "Can build and release with Shoehorn" do
 
     with_simple_app do
       result = mix("release", ["--verbose", "--env=prod"])
@@ -44,13 +44,13 @@ defmodule BootloaderTest do
 
       {:ok, _task} =
         Task.start(fn ->
-          System.cmd(app_path, ["console_boot", "bootloader"])
+          System.cmd(app_path, ["console_boot", "shoehorn"])
         end)
       :timer.sleep(1000)
       assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
       assert {applications, 0}    = System.cmd(app_path, ["eval", "'Elixir.Application':started_applications()"])
 
-      assert applications =~ "bootloader"
+      assert applications =~ "shoehorn"
       assert applications =~ "simple_app"
 
       System.cmd(app_path, ["stop"])
@@ -60,7 +60,7 @@ defmodule BootloaderTest do
 
   @tag :expensive
   @tag timeout: 60_000 * 5 # 5m
-  test "Can build and release without Bootloader" do
+  test "Can build and release without Shoehorn" do
 
     with_simple_app do
       result = mix("release", ["--verbose", "--env=prod"])
@@ -82,7 +82,7 @@ defmodule BootloaderTest do
         end)
       :timer.sleep(1000)
       assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
-      assert {app_controller_pid, 0}    = System.cmd(app_path, ["eval", "'Elixir.Process':whereis('Elixir.Bootloader.ApplicationController')"])
+      assert {app_controller_pid, 0}    = System.cmd(app_path, ["eval", "'Elixir.Process':whereis('Elixir.Shoehorn.ApplicationController')"])
 
       assert app_controller_pid == "nil\n"
 

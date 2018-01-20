@@ -40,5 +40,5 @@ end
 
 release :simple_app do
   set version: current_version(:simple_app)
-  plugin Bootloader.Plugin
+  plugin Shoehorn.Plugin
 end

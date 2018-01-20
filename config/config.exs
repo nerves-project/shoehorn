@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :bootloader, key: :value
+#     config :shoehorn, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:bootloader, :key)
+#     Application.get_env(:shoehorn, :key)
 #
 # Or configure a 3rd-party app:
 #

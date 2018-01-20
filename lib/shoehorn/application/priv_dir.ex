@@ -1,5 +1,5 @@
-defmodule Bootloader.Application.PrivDir do
-  alias Bootloader.Utils
+defmodule Shoehorn.Application.PrivDir do
+  alias Shoehorn.Utils
   alias __MODULE__
 
   defstruct [application: nil, hash: nil, path: nil, files: []]
@@ -8,7 +8,7 @@ defmodule Bootloader.Application.PrivDir do
     application: atom,
     hash: String.t,
     path: String.t,
-    files: Bootloader.Application.PrivDir.File.t
+    files: Shoehorn.Application.PrivDir.File.t
   }
 
   def load(app) do
@@ -28,7 +28,7 @@ defmodule Bootloader.Application.PrivDir do
 
   def path(app) do
     path =
-      Bootloader.Application.lib_dir(app)
+      Shoehorn.Application.lib_dir(app)
       |> Path.join("priv")
     if File.dir?(path) do
       path
@@ -71,7 +71,7 @@ defmodule Bootloader.Application.PrivDir do
     do: %{s | files: []}
   def compare(%__MODULE__{files: sources} = s, %__MODULE__{files: targets}) do
     files =
-      Bootloader.Application.PrivDir.File.compare(sources, targets)
+      Shoehorn.Application.PrivDir.File.compare(sources, targets)
       |> Enum.map(fn
         {action, file} when action in [:modified, :inserted] ->
           bin =

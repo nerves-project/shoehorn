@@ -1,5 +1,5 @@
-defmodule Bootloader.Application.PrivDir.File do
-  alias Bootloader.Utils
+defmodule Shoehorn.Application.PrivDir.File do
+  alias Shoehorn.Utils
 
   defstruct [path: nil, hash: nil, binary: nil]
 

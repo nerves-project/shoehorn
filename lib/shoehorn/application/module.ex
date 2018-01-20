@@ -1,4 +1,4 @@
-defmodule Bootloader.Application.Module do
+defmodule Shoehorn.Application.Module do
   defstruct [name: nil, hash: nil, binary: nil]
 
   @type t :: %__MODULE__{
@@ -44,7 +44,7 @@ defmodule Bootloader.Application.Module do
   end
 
   def beam(app, mod) do
-    Bootloader.Application.ebin(app)
+    Shoehorn.Application.ebin(app)
     |> Path.join("#{mod}.beam")
   end
 

@@ -40,5 +40,5 @@ end
 
 release :pre_init do
   set version: current_version(:pre_init)
-  plugin Bootloader.Plugin
+  plugin Shoehorn.Plugin
 end

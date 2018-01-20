@@ -1,7 +1,7 @@
-defmodule Bootloader.ApplicationController do
+defmodule Shoehorn.ApplicationController do
   use GenServer
   @timeout 30_000
-  alias Bootloader.Utils
+  alias Shoehorn.Utils
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -27,8 +27,8 @@ defmodule Bootloader.ApplicationController do
     app = app(opts[:app])
     init =  opts[:init] || []
     init = reject_missing_apps(init)
-    overlay_path = opts[:overlay_path] || "/tmp/erlang/bootloader"
-    handler = opts[:handler] || Bootloader.Handler
+    overlay_path = opts[:overlay_path] || "/tmp/erlang/shoehorn"
+    handler = opts[:handler] || Shoehorn.Handler
     Enum.each([app | filter_apps(init)], &Application.load/1)
     s = %{
       init: init,
@@ -56,13 +56,13 @@ defmodule Bootloader.ApplicationController do
   end
 
   def handle_call({:overlay, :apply, overlay}, _from, s) do
-    reply = Bootloader.Overlay.apply(overlay, s.overlay_path)
+    reply = Shoehorn.Overlay.apply(overlay, s.overlay_path)
     Application.stop(s.app)
     Application.ensure_all_started(s.app)
     {:reply, reply, build_cache(s)}
   end
 
-  # Bootloader Application Init Phase
+  # Shoehorn Application Init Phase
   def handle_info(:init, s) do
     for app <- s.init do
       case app do
@@ -74,7 +74,7 @@ defmodule Bootloader.ApplicationController do
           Application.ensure_all_started(app)
         init_call ->
           IO.puts """
-          Bootloader encountered an error while trying to call #{inspect init_call}
+          Shoehorn encountered an error while trying to call #{inspect init_call}
           during initialization. The argument needs to be formated as
           
           {Module, :function, [args]}
@@ -87,7 +87,7 @@ defmodule Bootloader.ApplicationController do
     {:noreply, s}
   end
 
-  # Bootloader Application Start Phase
+  # Shoehorn Application Start Phase
   def handle_info(:app, s) do
     Application.ensure_all_started(s.app)
     {:noreply, build_cache(s)}
@@ -102,8 +102,8 @@ defmodule Bootloader.ApplicationController do
 
   defp build_hash(application_list) do
     application_list
-    #|> Bootloader.Application.expand_applications(application_list)
-    |> Enum.map(&Bootloader.Application.load/1)
+    #|> Shoehorn.Application.expand_applications(application_list)
+    |> Enum.map(&Shoehorn.Application.load/1)
     |> Enum.map(& &1.hash)
     |> Enum.join
     |> Utils.hash
@@ -111,20 +111,20 @@ defmodule Bootloader.ApplicationController do
 
   defp build_applications(application_list) do
     application_list
-    #|> Bootloader.Application.expand_applications(application_list)
-    |> Enum.map(&Bootloader.Application.load/1)
+    #|> Shoehorn.Application.expand_applications(application_list)
+    |> Enum.map(&Shoehorn.Application.load/1)
   end
 
   def app(nil) do
-    IO.puts "[Bootloader] app undefined. Finished booting"
-    :bootloader
+    IO.puts "[Shoehorn] app undefined. Finished booting"
+    :shoehorn
   end
   def app(app) do
-    if Bootloader.Application.exists?(app) do
+    if Shoehorn.Application.exists?(app) do
       app
     else
-      IO.puts "[Bootloader] app undefined. Finished booting"
-      :bootloader
+      IO.puts "[Shoehorn] app undefined. Finished booting"
+      :shoehorn
     end
   end
 
@@ -138,10 +138,10 @@ defmodule Bootloader.ApplicationController do
   def reject_missing_apps(apps) do
     Enum.filter(apps, fn
       app when is_atom(app) -> 
-        if Bootloader.Application.exists?(app) do
+        if Shoehorn.Application.exists?(app) do
           true
         else
-          IO.puts "[Bootloader] Init app #{inspect app} undefined. Skipping"
+          IO.puts "[Shoehorn] Init app #{inspect app} undefined. Skipping"
           false
         end
       _ -> true

@@ -1,7 +1,7 @@
-defmodule Bootloader.Utils do
+defmodule Shoehorn.Utils do
 
-  def bootloader_applications() do
-    [:bootloader, :kernel, :stdlib, :compiler, :elixir, :iex, :crypto, :logger]
+  def shoehorn_applications() do
+    [:shoehorn, :kernel, :stdlib, :compiler, :elixir, :iex, :crypto, :logger]
   end
 
   def hash(blob) do

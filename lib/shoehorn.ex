@@ -1,13 +1,13 @@
-defmodule Bootloader do
+defmodule Shoehorn do
   use Application
   use Mix.Releases.Plugin
 
-  alias Bootloader.Utils
+  alias Shoehorn.Utils
   alias Mix.Releases.{App, Release}
   alias Mix.Releases.Utils, as: ReleaseUtils
 
   def start(_type, _args) do
-    opts = [strategy: :one_for_one, name: Bootloader.Supervisor]
+    opts = [strategy: :one_for_one, name: Shoehorn.Supervisor]
     Supervisor.start_link(children(), opts)
   end
 
@@ -18,11 +18,11 @@ defmodule Bootloader do
 
   def boot({:ok, [[bootfile]]}) do
     bootfile = to_string(bootfile)
-    if String.ends_with?(bootfile, "bootloader") do
+    if String.ends_with?(bootfile, "shoehorn") do
       import Supervisor.Spec, warn: false
 
-      opts = Application.get_all_env(:bootloader)
-      [worker(Bootloader.ApplicationController, [opts])]
+      opts = Application.get_all_env(:shoehorn)
+      [worker(Shoehorn.ApplicationController, [opts])]
     else
       []
     end
@@ -53,10 +53,10 @@ defmodule Bootloader do
   end
 
   def generate_boot_script(app_release) do
-    Application.load(:bootloader)
-    runtime_spec = Application.spec(:bootloader)
+    Application.load(:shoehorn)
+    runtime_spec = Application.spec(:shoehorn)
 
-    release = Release.new(:bootloader, runtime_spec[:vsn])
+    release = Release.new(:shoehorn, runtime_spec[:vsn])
     release = %{release | profile: app_release.profile}
 
     release_apps = ReleaseUtils.get_apps(release)
@@ -73,11 +73,11 @@ defmodule Bootloader do
     end
 
     start_apps = Enum.filter(app_release.applications, fn %App{name: n} ->
-                               n in Utils.bootloader_applications end)
-    {[bootloader], start_apps} = Enum.split_with(start_apps, & &1.name == :bootloader)
-    start_apps = [%{bootloader | start_type: nil} | start_apps]
+                               n in Utils.shoehorn_applications end)
+    {[shoehorn], start_apps} = Enum.split_with(start_apps, & &1.name == :shoehorn)
+    start_apps = [%{shoehorn | start_type: nil} | start_apps]
     load_apps = Enum.reject(app_release.applications,  fn %App{name: n} ->
-                               n in Utils.bootloader_applications end)
+                               n in Utils.shoehorn_applications end)
     load_apps =
       #[]
       Enum.map(load_apps, & {&1.name, '#{&1.vsn}', :none})
@@ -91,10 +91,10 @@ defmodule Bootloader do
         end
       end)
     relfile = {:release,
-                    {'bootloader', '0.1.0'},
+                    {'shoehorn', '0.1.0'},
                     {:erts, '#{erts_vsn}'},
                     start_apps ++ load_apps}
-    path = Path.join(rel_dir, "bootloader.rel")
+    path = Path.join(rel_dir, "shoehorn.rel")
     ReleaseUtils.write_term(path, relfile)
 
     erts_lib_dir =
@@ -111,9 +111,9 @@ defmodule Bootloader do
                :no_module_tests,
                :silent]
 
-    case :systools.make_script('bootloader', options) do
+    case :systools.make_script('shoehorn', options) do
       {:error, _, e} ->
-        Logger.error "Bootloader failed: " <>
+        Logger.error "Shoehorn failed: " <>
           inspect(e) <>
           "\n#{Exception.format_stacktrace(System.stacktrace)}"
           exit({:shutdown, 1})
@@ -121,13 +121,13 @@ defmodule Bootloader do
         %Release{profile: %{output_dir: output_dir}, name: app} = app_release
         relative_output_dir = Path.relative_to_cwd(output_dir)
         Logger.success """
-        Generated Bootloader Boot Script
-            Run using bootloader:
-              Interactive: #{relative_output_dir}/bin/#{app} console_boot bootloader
+        Generated Shoehorn Boot Script
+            Run using shoehorn:
+              Interactive: #{relative_output_dir}/bin/#{app} console_boot shoehorn
         """
     end
 
-    File.cp(Path.join(rel_dir, "bootloader.boot"),
-                            Path.join([app_release.profile.output_dir, "bin", "bootloader.boot"]))
+    File.cp(Path.join(rel_dir, "shoehorn.boot"),
+                            Path.join([app_release.profile.output_dir, "bin", "shoehorn.boot"]))
   end
 end

@@ -9,7 +9,7 @@
   * Only look in `:code.lib_dir()` for the Application lib dir instead of involving `mix`
 * Enhancements
   * Warn when an app listed in `:init` or `:app` does not exist.
-  * Output message about booting using bootloader during `mix release`
+  * Output message about booting using shoehorn during `mix release`
 
 ## v0.1.1
 * Bug Fixes

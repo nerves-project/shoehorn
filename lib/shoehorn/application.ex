@@ -1,12 +1,12 @@
-defmodule Bootloader.Application do
-  alias Bootloader.Utils
+defmodule Shoehorn.Application do
+  alias Shoehorn.Utils
 
   defstruct [name: nil, hash: nil, priv_dir: nil, applications: [], modules: []]
 
   @type t :: %__MODULE__{
     name: atom,
     hash: String.t,
-    priv_dir: Bootloader.Application.PrivDir.t
+    priv_dir: Shoehorn.Application.PrivDir.t
   }
 
   def load(app) do
@@ -43,15 +43,15 @@ defmodule Bootloader.Application do
     application_list
     |> Enum.uniq
     # |> expand_applications(application_list)
-    |> Enum.reject(& &1 in Utils.bootloader_applications())
+    |> Enum.reject(& &1 in Utils.shoehorn_applications())
 
-    #|> Enum.map(&Bootloader.Application.load/1)
+    #|> Enum.map(&Shoehorn.Application.load/1)
   end
 
   def expand_applications([], l), do: List.flatten(l)
   def expand_applications(list, loaded) do
     list =
-      Enum.map(list, &Bootloader.Application.applications/1)
+      Enum.map(list, &Shoehorn.Application.applications/1)
       |> List.flatten
 
     loaded =
@@ -63,11 +63,11 @@ defmodule Bootloader.Application do
 
   def modules(app) do
     spec(app)[:modules]
-    |> Enum.map(&Bootloader.Application.Module.load(app, &1))
+    |> Enum.map(&Shoehorn.Application.Module.load(app, &1))
   end
 
   def priv_dir(app) do
-    Bootloader.Application.PrivDir.load(app)
+    Shoehorn.Application.PrivDir.load(app)
   end
 
   def spec(app) do
@@ -111,13 +111,13 @@ defmodule Bootloader.Application do
           {:noop, _} -> acc
           {mod, s} ->
             modules =
-              Bootloader.Application.Module.compare(s.modules, t.modules)
+              Shoehorn.Application.Module.compare(s.modules, t.modules)
               |> Enum.map(fn
                 {action, mod} when action in [:modified, :inserted] ->
-                  {action, %{mod | binary: Bootloader.Application.Module.bin(s.name, mod)}}
+                  {action, %{mod | binary: Shoehorn.Application.Module.bin(s.name, mod)}}
                 mod -> mod
               end)
-            priv_dir = Bootloader.Application.PrivDir.compare(s.priv_dir, t.priv_dir)
+            priv_dir = Shoehorn.Application.PrivDir.compare(s.priv_dir, t.priv_dir)
             mod = {mod, %{s | modules: modules, priv_dir: priv_dir}}
             [mod | acc]
         end
@@ -136,17 +136,17 @@ defmodule Bootloader.Application do
   def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
   def compare(s, _), do: {:modified, s}
 
-  def apply({:inserted, _app}, overlay_path) do
-
+  def apply({:inserted, _app}, _overlay_path) do
+    
   end
-  def apply({:deleted, _app}, overlay_path) do
+  def apply({:deleted, _app}, _overlay_path) do
 
   end
   def apply({:modified, app}, overlay_path) do
     overlay_path = Path.join([overlay_path, to_string(app.name)])
     Application.stop(app.name)
-    Bootloader.Application.PrivDir.apply(app.priv_dir, overlay_path)
-    Enum.each(app.modules, &Bootloader.Application.Module.apply(&1, overlay_path))
+    Shoehorn.Application.PrivDir.apply(app.priv_dir, overlay_path)
+    Enum.each(app.modules, &Shoehorn.Application.Module.apply(&1, overlay_path))
     # Try to start the application. If it fails, we should callback the handler
     #  for more a strategy, like rolling the code path back.
     Application.start(app.name)

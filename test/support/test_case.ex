@@ -1,10 +1,10 @@
-defmodule Bootloader.TestCase do
+defmodule Shoehorn.TestCase do
   use ExUnit.CaseTemplate
 
   using do
     quote do
       import unquote(__MODULE__)
-      alias Bootloader.TestCase
+      alias Shoehorn.TestCase
     end
   end
 
