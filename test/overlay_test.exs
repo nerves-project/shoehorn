@@ -157,7 +157,7 @@ defmodule Shoehorn.OverlayTest do
   end
 
   defp add_code_path(node, path) do
-    path = String.to_char_list(path)
+    path = String.to_charlist(path)
     Shoehorn.Utils.rpc(node, :code, :add_path, [path])
   end
 
