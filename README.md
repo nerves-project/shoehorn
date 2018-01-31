@@ -53,3 +53,7 @@ config :shoehorn,
   init: [:runtime_app],
   app: :simple_app
 ```
+
+## Thanks
+Big thanks to [Sonny Scroggin](https://github.com/scrogson) for coming up with
+the name Shoehorn <3
