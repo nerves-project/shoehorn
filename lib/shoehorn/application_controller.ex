@@ -27,6 +27,10 @@ defmodule Shoehorn.ApplicationController do
     GenServer.call(__MODULE__, {:overlay, :apply, overlay}, @timeout)
   end
 
+  def ensure_all_started(app) do
+    GenServer.call(__MODULE__, {:ensure_all_started, app})
+  end
+
   def init(opts) do
     app = app(opts[:app])
 
@@ -37,7 +41,8 @@ defmodule Shoehorn.ApplicationController do
 
     overlay_path = opts[:overlay_path] || @overlay_path
     handler = opts[:handler] || Shoehorn.Handler
-    Enum.each([app | filter_apps(init)], &Application.load/1)
+
+    {:ok, handler_state} = handler.init(opts)
 
     s = %{
       init: init,
@@ -46,9 +51,10 @@ defmodule Shoehorn.ApplicationController do
       applications: [],
       overlay_path: overlay_path,
       handler: handler,
+      handler_state: handler_state,
       monitors: [],
       shutdown_timer: shutdown_timer,
-      status: :run
+      status: :init
     }
 
     send(self(), :init)
@@ -67,6 +73,11 @@ defmodule Shoehorn.ApplicationController do
     {:reply, :ok, build_cache(s)}
   end
 
+  def handle_call({:ensure_all_started, app}, _from, s) do
+    {reply, s} = start_app(app, s)
+    {:reply, reply, s}
+  end
+
   def handle_call({:overlay, :apply, overlay}, _from, s) do
     reply = Shoehorn.Overlay.apply(overlay, s.overlay_path)
     Application.stop(s.app)
@@ -76,52 +87,59 @@ defmodule Shoehorn.ApplicationController do
 
   # Shoehorn Application Init Phase
   def handle_info(:init, s) do
-    s = Enum.reduce(s.init, s, &start_app/2)
-    send(self(), :app)
-    {:noreply, s}
+    result =
+      Enum.reduce(s.init, {:ok, s}, fn
+        (app, {:ok, s}) -> start_app(app,s)
+        (_app, {:error, s}) -> {:error, s}
+      end)
+
+    case result do
+      {:ok, s} ->
+        send(self(), :app)
+        {:noreply, %{s | status: :app}}
+      {:error, s} ->
+        {:noreply, s}
+    end
   end
 
   # Shoehorn Application Start Phase
   def handle_info(:app, %{status: :shutdown} = s), do: {:noreply, s}
 
   def handle_info(:app, s) do
-    s = start_app(s.app, s)
+    {_, s} = start_app(s.app, s)
     {:noreply, build_cache(s)}
   end
 
   # Application stopped
   def handle_info({:DOWN, _ref, _, _, _}, %{status: :shutdown} = s), do: {:noreply, s}
-  def handle_info({:DOWN, ref, _, _, _}, s) do
+  def handle_info({:DOWN, ref, _, _, reason}, s) do
     app = Enum.find(s.monitors, fn {_, app_ref} -> app_ref == ref end)
     {app, _} = app
-    {:noreply, shutdown(app, s)}
+    {:noreply, shutdown(app, {:stopped, reason}, s)}
   end
 
-  def handle_info(:shutdown, s) do
-    :erlang.halt()
-    {:stop, :kill, s}
+  def handle_info(_unknown, s) do
+    {:noreply, s}
   end
-
-  defp start_app(_, %{status: :shutdown} = s), do: s
 
   defp start_app({m, f, a}, s) when is_list(a) do
     apply(m, f, a)
-    s
+    {:ok, s}
   end
 
   defp start_app({m, a}, s) when is_list(a) do
     apply(m, :start_link, a)
-    s
+    {:ok, s}
   end
 
   defp start_app(app, s) when is_atom(app) do
     case Application.ensure_all_started(s.app) do
       {:ok, apps} ->
         monitors = monitor_applications(apps, s.monitors)
-        %{s | monitors: monitors}
+        {:ok, %{s | monitors: monitors}}
 
       _ ->
-        shutdown(app, s)
+        {:error, shutdown(app, :not_started, s)}
     end
   end
 
@@ -135,22 +153,28 @@ defmodule Shoehorn.ApplicationController do
     :application
     """)
 
-    s
+    {:ok, s}
   end
 
-  defp shutdown(app, s) do
-    shoehorn = self()
+  defp shutdown(app, message, s=%{status: level}) do
+    {:ok, shutdown_timer_ref} = :timer.apply_after(s.shutdown_timer, :erlang, :halt, [])
 
-    # start the shutdown timer
-    Process.send_after(shoehorn, :shutdown, s.shutdown_timer)
+    {action, new_handler_state} = apply(s.handler, :handle_application, [message, app, s.handler_state])
 
-    spawn(fn ->
-      apply(s.handler, :application_stopped, [app])
-      send(shoehorn, :shutdown)
-    end)
+    case action do
+      :halt ->
+        :erlang.halt()
+      :restart ->
+        start_app(app, s)
+        send(self(), level)
+      :continue ->
+        :ok
+    end
 
-    %{s | status: :shutdown}
+    :timer.cancel(shutdown_timer_ref)
+    %{s | handler_state: new_handler_state, status: level}
   end
+
 
   defp build_cache(s) do
     applications_list = [s.app | filter_apps(s.init)]
@@ -160,7 +184,6 @@ defmodule Shoehorn.ApplicationController do
   end
 
   defp build_hash(application_list) do
-    # |> Shoehorn.Application.expand_applications(application_list)
     application_list
     |> Enum.map(&Shoehorn.Application.load/1)
     |> Enum.map(& &1.hash)
@@ -169,7 +192,6 @@ defmodule Shoehorn.ApplicationController do
   end
 
   defp build_applications(application_list) do
-    # |> Shoehorn.Application.expand_applications(application_list)
     application_list
     |> Enum.map(&Shoehorn.Application.load/1)
   end
