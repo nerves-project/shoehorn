@@ -1,19 +1,21 @@
 defmodule Shoehorn.Overlay do
   alias Shoehorn.Utils
 
-  defstruct [hash: nil, delta: []]
+  defstruct hash: nil, delta: []
 
   @type t :: %__MODULE__{
-    hash: String.t,
-    delta: [Shoehorn.Application.t]
-  }
+          hash: String.t(),
+          delta: [Shoehorn.Application.t()]
+        }
 
   def load(sources, targets) when is_list(sources) and is_list(targets) do
     delta = Shoehorn.Application.compare(sources, targets)
+
     %__MODULE__{
       delta: delta
     }
   end
+
   def load(source, target), do: load([source], [target])
 
   def apply(%__MODULE__{} = overlay, overlay_dir) do
@@ -22,11 +24,10 @@ defmodule Shoehorn.Overlay do
   end
 
   def hash(applications) do
-      applications
-      |> Enum.map(fn({_, app}) -> app end)
-      |> Enum.map(& &1.hash)
-      |> Enum.join
-      |> Utils.hash
+    applications
+    |> Enum.map(fn {_, app} -> app end)
+    |> Enum.map(& &1.hash)
+    |> Enum.join()
+    |> Utils.hash()
   end
-
 end

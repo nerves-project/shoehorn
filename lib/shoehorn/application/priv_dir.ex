@@ -2,14 +2,14 @@ defmodule Shoehorn.Application.PrivDir do
   alias Shoehorn.Utils
   alias __MODULE__
 
-  defstruct [application: nil, hash: nil, path: nil, files: []]
+  defstruct application: nil, hash: nil, path: nil, files: []
 
   @type t :: %__MODULE__{
-    application: atom,
-    hash: String.t,
-    path: String.t,
-    files: Shoehorn.Application.PrivDir.File.t
-  }
+          application: atom,
+          hash: String.t(),
+          path: String.t(),
+          files: Shoehorn.Application.PrivDir.File.t()
+        }
 
   def load(app) do
     path =
@@ -18,6 +18,7 @@ defmodule Shoehorn.Application.PrivDir do
       else
         nil
       end
+
     %__MODULE__{
       application: app,
       hash: hash(path),
@@ -30,6 +31,7 @@ defmodule Shoehorn.Application.PrivDir do
     path =
       Shoehorn.Application.lib_dir(app)
       |> Path.join("priv")
+
     if File.dir?(path) do
       path
     else
@@ -48,27 +50,31 @@ defmodule Shoehorn.Application.PrivDir do
   def hash(nil) do
     Utils.hash("")
   end
+
   def hash(path) do
     files(path)
-    |> Enum.map(fn(%{hash: hash}) ->
+    |> Enum.map(fn %{hash: hash} ->
       hash
     end)
-    |> Enum.join
-    |> Utils.hash
+    |> Enum.join()
+    |> Utils.hash()
   end
 
   def files(nil), do: []
+
   def files(path) do
     case File.ls(path) do
       {:ok, files} ->
         Utils.expand_paths(files, path)
         |> Enum.map(&PrivDir.File.load(&1, path))
-      _error -> []
+
+      _error ->
+        []
     end
   end
 
-  def compare(%__MODULE__{hash: hash} = s, %__MODULE__{hash: hash}),
-    do: %{s | files: []}
+  def compare(%__MODULE__{hash: hash} = s, %__MODULE__{hash: hash}), do: %{s | files: []}
+
   def compare(%__MODULE__{files: sources} = s, %__MODULE__{files: targets}) do
     files =
       Shoehorn.Application.PrivDir.File.compare(sources, targets)
@@ -76,10 +82,14 @@ defmodule Shoehorn.Application.PrivDir do
         {action, file} when action in [:modified, :inserted] ->
           bin =
             Path.join(s.path, file.path)
-            |> File.read!
+            |> File.read!()
+
           {action, %{file | binary: bin}}
-        mod -> mod
+
+        mod ->
+          mod
       end)
+
     %{s | files: files}
   end
 
@@ -87,9 +97,8 @@ defmodule Shoehorn.Application.PrivDir do
     path = path(pd.application)
     files = files(path)
     # Check to see if there is work to perform.
-    if (files != [] or pd.files != []) do
-      overlay_priv_dir =
-        Path.join(overlay_path, "priv")
+    if files != [] or pd.files != [] do
+      overlay_priv_dir = Path.join(overlay_path, "priv")
       File.mkdir_p!(overlay_priv_dir)
 
       # Copy the current priv dir contents if it is not empty
@@ -109,5 +118,4 @@ defmodule Shoehorn.Application.PrivDir do
       :noop
     end
   end
-
 end

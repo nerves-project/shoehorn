@@ -13,13 +13,13 @@ defmodule Shoehorn.TestCase do
       Logger.remove_backend(:console)
     end
 
-    on_exit fn ->
+    on_exit(fn ->
       Application.start(:logger)
       Mix.env(:dev)
-      Mix.Task.clear
-      Mix.Shell.Process.flush
-      Mix.ProjectStack.clear_cache
-      Mix.ProjectStack.clear_stack
+      Mix.Task.clear()
+      Mix.Shell.Process.flush()
+      Mix.ProjectStack.clear_cache()
+      Mix.ProjectStack.clear_stack()
       delete_tmp_paths()
 
       if apps do
@@ -27,42 +27,44 @@ defmodule Shoehorn.TestCase do
           Application.stop(app)
           Application.unload(app)
         end
+
         Logger.add_backend(:console, flush: true)
       end
-    end
+    end)
 
     :ok
   end
 
   defmacro in_fixture(which, block) do
-      module   = inspect __CALLER__.module
-      function = Atom.to_string elem(__CALLER__.function, 0)
-      tmp      = Path.join(module, function)
+    module = inspect(__CALLER__.module)
+    function = Atom.to_string(elem(__CALLER__.function, 0))
+    tmp = Path.join(module, function)
 
-      quote do
-        unquote(__MODULE__).in_fixture(unquote(which), unquote(tmp), unquote(block))
-      end
+    quote do
+      unquote(__MODULE__).in_fixture(unquote(which), unquote(tmp), unquote(block))
     end
+  end
 
   def in_fixture(which, tmp, function) do
-    dest = tmp_path(tmp)
-    |> Path.join(which)
+    dest =
+      tmp_path(tmp)
+      |> Path.join(which)
+
     fixture_to_tmp(which, dest)
 
     flag = String.to_charlist(tmp_path())
 
-    get_path = :code.get_path
-    previous = :code.all_loaded
+    get_path = :code.get_path()
+    previous = :code.all_loaded()
 
     try do
-      File.cd! dest, function
+      File.cd!(dest, function)
     after
       :code.set_path(get_path)
 
-      for {mod, file} <- :code.all_loaded -- previous,
-          file == :in_memory or
-          (is_list(file) and :lists.prefix(flag, file)) do
-        purge [mod]
+      for {mod, file} <- :code.all_loaded() -- previous,
+          file == :in_memory or (is_list(file) and :lists.prefix(flag, file)) do
+        purge([mod])
       end
     end
   end
@@ -84,7 +86,7 @@ defmodule Shoehorn.TestCase do
   end
 
   def fixture_to_tmp(fixture, dest) do
-    src  = fixture_path(fixture)
+    src = fixture_path(fixture)
 
     File.rm_rf!(dest)
     File.mkdir_p!(dest)
@@ -92,17 +94,14 @@ defmodule Shoehorn.TestCase do
   end
 
   def purge(modules) do
-    Enum.each modules, fn(m) ->
+    Enum.each(modules, fn m ->
       :code.purge(m)
       :code.delete(m)
-    end
+    end)
   end
 
   defp delete_tmp_paths do
     tmp = String.to_charlist(tmp_path())
-    for path <- :code.get_path,
-        :string.str(path, tmp) != 0,
-        do: :code.del_path(path)
+    for path <- :code.get_path(), :string.str(path, tmp) != 0, do: :code.del_path(path)
   end
-
 end

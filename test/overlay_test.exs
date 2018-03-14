@@ -2,19 +2,16 @@ defmodule Shoehorn.OverlayTest do
   use Shoehorn.TestCase, async: false
 
   setup_all do
-    overlay_fixture_path =
-      Path.join([File.cwd!, "test", "fixtures", "overlay"])
+    overlay_fixture_path = Path.join([File.cwd!(), "test", "fixtures", "overlay"])
 
-    source_path =
-      Path.join([overlay_fixture_path, "source", "simple_app"])
-    target_path =
-      Path.join([overlay_fixture_path, "target", "simple_app"])
+    source_path = Path.join([overlay_fixture_path, "source", "simple_app"])
+    target_path = Path.join([overlay_fixture_path, "target", "simple_app"])
 
     Path.join([target_path, "overlays"])
     |> File.rm_rf!()
 
     [source_path, target_path]
-    |> Enum.each(fn(path) ->
+    |> Enum.each(fn path ->
       ebin = Path.join(path, "ebin")
       remove_beams(ebin)
       File.mkdir_p!(ebin)
@@ -22,7 +19,8 @@ defmodule Shoehorn.OverlayTest do
       src = Path.join(path, "src")
       compile_path(src, ebin)
     end)
-    :os.cmd 'epmd -daemon'
+
+    :os.cmd('epmd -daemon')
     {:ok, node} = :net_kernel.start([:"host@127.0.0.1"])
     overlay_dir = Path.join([target_path, "overlays"])
 
@@ -40,39 +38,38 @@ defmodule Shoehorn.OverlayTest do
     Shoehorn.Utils.rpc(source_node, Shoehorn.ApplicationController, :start_link, [opts])
     Shoehorn.Utils.rpc(target_node, Shoehorn.ApplicationController, :start_link, [opts])
 
-    sources =
-      Shoehorn.Utils.rpc(source_node, Shoehorn.ApplicationController, :applications, [])
-      #|> IO.inspect(label: "Sources")
+    sources = Shoehorn.Utils.rpc(source_node, Shoehorn.ApplicationController, :applications, [])
+    # |> IO.inspect(label: "Sources")
 
-    targets =
-      Shoehorn.Utils.rpc(target_node, Shoehorn.ApplicationController, :applications, [])
-      #|> IO.inspect(label: "Targets")
+    targets = Shoehorn.Utils.rpc(target_node, Shoehorn.ApplicationController, :applications, [])
+    # |> IO.inspect(label: "Targets")
 
-    overlay =
-      Shoehorn.Utils.rpc(source_node, Shoehorn.Overlay, :load, [sources, targets])
-      #|> IO.inspect
+    overlay = Shoehorn.Utils.rpc(source_node, Shoehorn.Overlay, :load, [sources, targets])
+    # |> IO.inspect
 
     overlay_dir = Path.join([target_path, "overlays"])
-    assert :ok =
-      Shoehorn.Utils.rpc(
-        target_node,
-        Shoehorn.Overlay,
-        :apply,
-        [overlay, overlay_dir])
+    assert :ok = Shoehorn.Utils.rpc(target_node, Shoehorn.Overlay, :apply, [overlay, overlay_dir])
 
-    [source: source_path, target: target_path,
-     overlay: overlay, sources: sources, targets: targets,
-     source_node: source_node, target_node: target_node, host_node: node]
+    [
+      source: source_path,
+      target: target_path,
+      overlay: overlay,
+      sources: sources,
+      targets: targets,
+      source_node: source_node,
+      target_node: target_node,
+      host_node: node
+    ]
   end
 
   test "Module Modified Apply", context do
     assert {SimpleApp.Modified, :source, :pong} ==
-      Shoehorn.Utils.rpc(context.target_node, SimpleApp.Modified, :ping, [])
+             Shoehorn.Utils.rpc(context.target_node, SimpleApp.Modified, :ping, [])
   end
 
   test "Module Insert Apply", context do
     assert {SimpleApp.Inserted, :source, :pong} ==
-      Shoehorn.Utils.rpc(context.target_node, SimpleApp.Inserted, :ping, [])
+             Shoehorn.Utils.rpc(context.target_node, SimpleApp.Inserted, :ping, [])
   end
 
   # TODO: Testing module deletion requires that the spawned vm is running in embedded mode
@@ -83,23 +80,29 @@ defmodule Shoehorn.OverlayTest do
   # end
 
   test "PrivDir Modified Apply", context do
-    target_priv_dir =  Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+    target_priv_dir = Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
 
     file_modified = Path.join([target_priv_dir, "file_modified"])
+
     source_file_modified =
       Path.join([context.source, "priv", "file_modified"])
-      |> File.read!
-    assert Shoehorn.Utils.rpc(context.target_node, File, :read!, [file_modified]) == source_file_modified
+      |> File.read!()
+
+    assert Shoehorn.Utils.rpc(context.target_node, File, :read!, [file_modified]) ==
+             source_file_modified
   end
 
   test "PrivDir Insert Apply", context do
-    target_priv_dir =  Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
+    target_priv_dir = Shoehorn.Utils.rpc(context.target_node, :code, :priv_dir, [:simple_app])
 
     file_inserted = Path.join([target_priv_dir, "file_inserted"])
+
     source_file_inserted =
       Path.join([context.source, "priv", "file_inserted"])
-      |> File.read!
-    assert Shoehorn.Utils.rpc(context.target_node, File, :read!, [file_inserted]) == source_file_inserted
+      |> File.read!()
+
+    assert Shoehorn.Utils.rpc(context.target_node, File, :read!, [file_inserted]) ==
+             source_file_inserted
   end
 
   test "PrivDir Deleted Apply", context do
@@ -110,20 +113,19 @@ defmodule Shoehorn.OverlayTest do
 
   defp remove_beams(ebin) do
     Path.join([ebin, "*.beam"])
-    |> Path.wildcard
+    |> Path.wildcard()
     |> Enum.each(&File.rm!/1)
-
   end
 
   defp compile_path(src, ebin) do
     File.ls!(src)
-    |> Enum.each(fn(file) ->
+    |> Enum.each(fn file ->
       path = Path.join([src, file])
 
       path
-      |> File.read!
+      |> File.read!()
       |> Code.compile_string()
-      |> Enum.each(fn({module, bin}) ->
+      |> Enum.each(fn {module, bin} ->
         file = Path.join([ebin, "#{module}.beam"])
         File.write!(file, bin)
       end)
@@ -136,6 +138,7 @@ defmodule Shoehorn.OverlayTest do
       |> Enum.map(&to_string/1)
       |> Enum.map(&"-pa #{&1}")
       |> Enum.join(" ")
+
     '-setcookie #{:erlang.get_cookie()} -mode interactive #{path}'
   end
 
@@ -164,10 +167,13 @@ defmodule Shoehorn.OverlayTest do
   defp ensure_applications_started(node) do
     Shoehorn.Utils.rpc(node, Application, :ensure_all_started, [:mix])
     Shoehorn.Utils.rpc(node, Mix, :env, [Mix.env()])
-    apps = Enum.reject(Application.loaded_applications, fn
-      {:shoehorn, _, _} -> true
-      _ -> false
-    end)
+
+    apps =
+      Enum.reject(Application.loaded_applications(), fn
+        {:shoehorn, _, _} -> true
+        _ -> false
+      end)
+
     for {app_name, _, _} <- apps do
       Shoehorn.Utils.rpc(node, Application, :ensure_all_started, [app_name])
     end
@@ -178,7 +184,6 @@ defmodule Shoehorn.OverlayTest do
     |> to_string
     |> String.split("@")
     |> Enum.at(0)
-    |> String.to_atom
+    |> String.to_atom()
   end
-
 end

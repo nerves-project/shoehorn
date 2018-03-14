@@ -1,11 +1,11 @@
 defmodule Shoehorn.Application.Module do
-  defstruct [name: nil, hash: nil, binary: nil]
+  defstruct name: nil, hash: nil, binary: nil
 
   @type t :: %__MODULE__{
-    name: atom,
-    hash: String.t | number(),
-    binary: binary()
-  }
+          name: atom,
+          hash: String.t() | number(),
+          binary: binary()
+        }
 
   def load(app, mod) do
     %__MODULE__{
@@ -16,7 +16,7 @@ defmodule Shoehorn.Application.Module do
 
   def hash(app, mod) do
     attributes(app, mod)[:vsn]
-    |> List.first
+    |> List.first()
   end
 
   def attributes(app, mod) do
@@ -24,6 +24,7 @@ defmodule Shoehorn.Application.Module do
       beam =
         beam(app, mod)
         |> Kernel.to_charlist()
+
       {:ok, {_, [attributes: attributes]}} = :beam_lib.chunks(beam, [:attributes])
       attributes
     rescue
@@ -50,24 +51,30 @@ defmodule Shoehorn.Application.Module do
 
   def compare(sources, targets) when is_list(sources) and is_list(targets) do
     modified =
-      Enum.reduce(sources, [], fn(s, acc) ->
-        t = Enum.find(targets, & &1.name == s.name)
+      Enum.reduce(sources, [], fn s, acc ->
+        t = Enum.find(targets, &(&1.name == s.name))
+
         case compare(s, t) do
-          {:noop, _} -> acc
+          {:noop, _} ->
+            acc
+
           modification ->
             [modification | acc]
         end
       end)
+
     deleted =
-      Enum.reduce(targets, [], fn(t, acc) ->
-        if Enum.any?(sources, & &1.name == t.name) do
+      Enum.reduce(targets, [], fn t, acc ->
+        if Enum.any?(sources, &(&1.name == t.name)) do
           acc
         else
           [{:deleted, t} | acc]
         end
       end)
+
     modified ++ deleted
   end
+
   def compare(s, nil), do: {:inserted, s}
   def compare(%{hash: hash} = s, %{hash: hash}), do: {:noop, s}
   def compare(s, _), do: {:modified, s}
@@ -78,6 +85,7 @@ defmodule Shoehorn.Application.Module do
 
     beam_file = Path.join(ebin_path, "#{mod.name}.beam")
     File.write(beam_file, mod.binary)
+
     if action == :modified do
       :code.purge(mod.name)
     end
@@ -85,9 +93,9 @@ defmodule Shoehorn.Application.Module do
     Code.prepend_path(ebin_path)
     :code.load_file(mod.name)
   end
+
   def apply({:deleted, mod}, _) do
     :code.delete(mod.name)
     :code.purge(mod.name)
   end
-
 end
