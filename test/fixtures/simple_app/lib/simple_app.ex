@@ -13,7 +13,7 @@ defmodule SimpleApp.A do
 
   """
   def hello do
-    #:world
+    # :world
     :world
   end
 end
@@ -33,7 +33,7 @@ defmodule SimpleApp.B do
 
   """
   def hello do
-    #:world
+    # :world
     :again
   end
 end

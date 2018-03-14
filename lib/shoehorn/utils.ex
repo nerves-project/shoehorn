@@ -1,12 +1,11 @@
 defmodule Shoehorn.Utils do
-
   def shoehorn_applications() do
     [:shoehorn, :kernel, :stdlib, :compiler, :elixir, :iex, :crypto, :logger]
   end
 
   def hash(blob) do
     :crypto.hash(:sha256, blob)
-    |> Base.encode16
+    |> Base.encode16()
   end
 
   def expand_paths(paths, dir) do
@@ -18,7 +17,7 @@ defmodule Shoehorn.Utils do
     |> Enum.flat_map(&dir_files/1)
     |> Enum.map(&Path.expand/1)
     |> Enum.filter(&File.regular?/1)
-    |> Enum.uniq
+    |> Enum.uniq()
     |> Enum.map(&Path.relative_to(&1, expand_dir))
   end
 
@@ -33,5 +32,4 @@ defmodule Shoehorn.Utils do
   def rpc(node, module, function, args) do
     :rpc.block_call(node, module, function, args)
   end
-
 end

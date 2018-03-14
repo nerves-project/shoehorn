@@ -1,4 +1,3 @@
 use Mix.Config
 
-config :shoehorn,
-  app: :simple_app
+config :shoehorn, app: :simple_app

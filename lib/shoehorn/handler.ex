@@ -1,10 +1,9 @@
 defmodule Shoehorn.Handler do
-
   @callback init() :: any
 
-  @callback application_stopped(app :: atom, reason:: any, state :: any) ::
-    {:noreply, state :: any} |
-    {:stop, reason :: term, state :: any}
+  @callback application_stopped(app :: atom, reason :: any, state :: any) ::
+              {:noreply, state :: any}
+              | {:stop, reason :: term, state :: any}
 
   defmacro __using__(_) do
     quote do
