@@ -4,6 +4,6 @@ defmodule Example do
   end
 
   def application_stopped(app) do
-    IO.puts "Calling handler from example"
+    IO.puts "Application stopped: #{inspect app}"
   end
 end
