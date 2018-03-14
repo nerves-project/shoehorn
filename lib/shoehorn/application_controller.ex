@@ -47,7 +47,8 @@ defmodule Shoehorn.ApplicationController do
       overlay_path: overlay_path,
       handler: handler,
       monitors: [],
-      shutdown_timer: shutdown_timer
+      shutdown_timer: shutdown_timer,
+      status: :run
     }
 
     send(self(), :init)
@@ -75,60 +76,69 @@ defmodule Shoehorn.ApplicationController do
 
   # Shoehorn Application Init Phase
   def handle_info(:init, s) do
-    monitors =
-      Enum.reduce(s.init, s.monitors, fn app, monitors ->
-        case app do
-          {m, f, a} when is_list(a) ->
-            apply(m, f, a)
-
-          {m, a} when is_list(a) ->
-            apply(m, :start_link, a)
-
-          app when is_atom(app) ->
-            case Application.ensure_all_started(app) do
-              {:ok, apps} ->
-                monitor_applications(apps, monitors)
-
-              _ ->
-                monitors
-            end
-
-          init_call ->
-            IO.puts("""
-            Shoehorn encountered an error while trying to call #{inspect(init_call)}
-            during initialization. The argument needs to be formated as
-
-            {Module, :function, [args]}
-            {Module, [args]}
-            :application
-            """)
-        end
-      end)
-
+    s = Enum.reduce(s.init, s, &start_app/2)
     send(self(), :app)
-    {:noreply, %{s | monitors: monitors}}
+    {:noreply, s}
   end
 
   # Shoehorn Application Start Phase
+  def handle_info(:app, %{status: :shutdown} = s), do: {:noreply, s}
+
   def handle_info(:app, s) do
-    s =
-      case Application.ensure_all_started(s.app) do
-        {:ok, apps} ->
-          monitors = monitor_applications(apps, s.monitors)
-          %{s | monitors: monitors}
-
-        _ ->
-          s
-      end
-
+    s = start_app(s.app, s)
     {:noreply, build_cache(s)}
   end
 
   # Application stopped
+  def handle_info({:DOWN, _ref, _, _, _}, %{status: :shutdown} = s), do: {:noreply, s}
   def handle_info({:DOWN, ref, _, _, _}, s) do
-    {[app], monitors} = Enum.split_with(s.monitors, fn {_, app_ref} -> app_ref == ref end)
+    app = Enum.find(s.monitors, fn {_, app_ref} -> app_ref == ref end)
     {app, _} = app
+    {:noreply, shutdown(app, s)}
+  end
 
+  def handle_info(:shutdown, s) do
+    :erlang.halt()
+    {:stop, :kill, s}
+  end
+
+  defp start_app(_, %{status: :shutdown} = s), do: s
+
+  defp start_app({m, f, a}, s) when is_list(a) do
+    apply(m, f, a)
+    s
+  end
+
+  defp start_app({m, a}, s) when is_list(a) do
+    apply(m, :start_link, a)
+    s
+  end
+
+  defp start_app(app, s) when is_atom(app) do
+    case Application.ensure_all_started(s.app) do
+      {:ok, apps} ->
+        monitors = monitor_applications(apps, s.monitors)
+        %{s | monitors: monitors}
+
+      _ ->
+        shutdown(app, s)
+    end
+  end
+
+  defp start_app(init_call, s) do
+    IO.puts("""
+    Shoehorn encountered an error while trying to call #{inspect(init_call)}
+    during initialization. The argument needs to be formated as
+
+    {Module, :function, [args]}
+    {Module, [args]}
+    :application
+    """)
+
+    s
+  end
+
+  defp shutdown(app, s) do
     shoehorn = self()
 
     # start the shutdown timer
@@ -139,12 +149,7 @@ defmodule Shoehorn.ApplicationController do
       send(shoehorn, :shutdown)
     end)
 
-    {:noreply, %{s | monitors: monitors}}
-  end
-
-  def handle_info(:shutdown, s) do
-    :erlang.halt()
-    {:stop, :kill, s}
+    %{s | status: :shutdown}
   end
 
   defp build_cache(s) do
