@@ -1,6 +1,10 @@
 defmodule Shoehorn.ApplicationController do
   use GenServer
+
   @timeout 30_000
+  @shutdown_timer 30_000
+  @overlay_path "/tmp/shoehorn"
+
   alias Shoehorn.Utils
 
   def start_link(opts) do
@@ -25,9 +29,13 @@ defmodule Shoehorn.ApplicationController do
 
   def init(opts) do
     app = app(opts[:app])
+
     init = opts[:init] || []
     init = reject_missing_apps(init)
-    overlay_path = opts[:overlay_path] || "/tmp/erlang/shoehorn"
+
+    shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
+
+    overlay_path = opts[:overlay_path] || @overlay_path
     handler = opts[:handler] || Shoehorn.Handler
     Enum.each([app | filter_apps(init)], &Application.load/1)
 
@@ -38,7 +46,8 @@ defmodule Shoehorn.ApplicationController do
       applications: [],
       overlay_path: overlay_path,
       handler: handler,
-      handler_state: handler.init()
+      monitors: [],
+      shutdown_timer: shutdown_timer
     }
 
     send(self(), :init)
@@ -66,37 +75,76 @@ defmodule Shoehorn.ApplicationController do
 
   # Shoehorn Application Init Phase
   def handle_info(:init, s) do
-    for app <- s.init do
-      case app do
-        {m, f, a} when is_list(a) ->
-          apply(m, f, a)
+    monitors =
+      Enum.reduce(s.init, s.monitors, fn app, monitors ->
+        case app do
+          {m, f, a} when is_list(a) ->
+            apply(m, f, a)
 
-        {m, a} when is_list(a) ->
-          apply(m, :start_link, a)
+          {m, a} when is_list(a) ->
+            apply(m, :start_link, a)
 
-        app when is_atom(app) ->
-          Application.ensure_all_started(app)
+          app when is_atom(app) ->
+            case Application.ensure_all_started(app) do
+              {:ok, apps} ->
+                monitor_applications(apps, monitors)
 
-        init_call ->
-          IO.puts("""
-          Shoehorn encountered an error while trying to call #{inspect(init_call)}
-          during initialization. The argument needs to be formated as
+              _ ->
+                monitors
+            end
 
-          {Module, :function, [args]}
-          {Module, [args]}
-          :application
-          """)
-      end
-    end
+          init_call ->
+            IO.puts("""
+            Shoehorn encountered an error while trying to call #{inspect(init_call)}
+            during initialization. The argument needs to be formated as
+
+            {Module, :function, [args]}
+            {Module, [args]}
+            :application
+            """)
+        end
+      end)
 
     send(self(), :app)
-    {:noreply, s}
+    {:noreply, %{s | monitors: monitors}}
   end
 
   # Shoehorn Application Start Phase
   def handle_info(:app, s) do
-    Application.ensure_all_started(s.app)
+    s =
+      case Application.ensure_all_started(s.app) do
+        {:ok, apps} ->
+          monitors = monitor_applications(apps, s.monitors)
+          %{s | monitors: monitors}
+
+        _ ->
+          s
+      end
+
     {:noreply, build_cache(s)}
+  end
+
+  # Application stopped
+  def handle_info({:DOWN, ref, _, _, _}, s) do
+    {[app], monitors} = Enum.split_with(s.monitors, fn {_, app_ref} -> app_ref == ref end)
+    {app, _} = app
+
+    shoehorn = self()
+
+    # start the shutdown timer
+    Process.send_after(shoehorn, :shutdown, s.shutdown_timer)
+
+    spawn(fn ->
+      apply(s.handler, :application_stopped, [app])
+      send(shoehorn, :shutdown)
+    end)
+
+    {:noreply, %{s | monitors: monitors}}
+  end
+
+  def handle_info(:shutdown, s) do
+    :erlang.halt()
+    {:stop, :kill, s}
   end
 
   defp build_cache(s) do
@@ -154,6 +202,18 @@ defmodule Shoehorn.ApplicationController do
 
       _ ->
         true
+    end)
+  end
+
+  def monitor_applications(applications, monitors) do
+    Enum.reduce(applications, monitors, fn app, monitors ->
+      case :application_controller.get_master(app) do
+        pid when is_pid(pid) ->
+          Keyword.put(monitors, app, Process.monitor(pid))
+
+        _ ->
+          monitors
+      end
     end)
   end
 end
