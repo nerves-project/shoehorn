@@ -27,10 +27,6 @@ defmodule Shoehorn.ApplicationController do
     GenServer.call(__MODULE__, {:overlay, :apply, overlay}, @timeout)
   end
 
-  def ensure_all_started(app) do
-    GenServer.call(__MODULE__, {:ensure_all_started, app})
-  end
-
   def init(opts) do
     app = app(opts[:app])
 
@@ -71,11 +67,6 @@ defmodule Shoehorn.ApplicationController do
 
   def handle_call(:clear_cache, _from, s) do
     {:reply, :ok, build_cache(s)}
-  end
-
-  def handle_call({:ensure_all_started, app}, _from, s) do
-    {reply, s} = start_app(app, s)
-    {:reply, reply, s}
   end
 
   def handle_call({:overlay, :apply, overlay}, _from, s) do
