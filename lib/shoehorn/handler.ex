@@ -92,7 +92,7 @@ defmodule Shoehorn.Handler do
   `Shoehorn.ApplicationController` should take, and the new state
   of the handler.
   """
-  @callback handle_application(cause, app :: atom, state :: any ) :: {action, state :: any}
+  @callback handle_application(cause, app :: atom, state :: any) :: {action, state :: any}
 
   def init(_opts) do
     {:ok, :no_state}
