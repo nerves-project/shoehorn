@@ -33,11 +33,11 @@ defmodule Shoehorn.Handler do
               {:continue, state}
             end
 
-            def application_exited(:non_esential_app, _reason,  state) do
+            def application_exited(:non_essential_app, _reason,  state) do
               {:continue, state}
             end
 
-            def application_exited(:esential_app, _reason, %{restart_counts: restart_counts} = state) when restart_counts < 2 do
+            def application_exited(:essential_app, _reason, %{restart_counts: restart_counts} = state) when restart_counts < 2 do
               Application.ensure_all_started(:essential_app)
               {:continue, %{state | restart_counts: restart_counts + 1}}
             end
@@ -55,10 +55,10 @@ defmodule Shoehorn.Handler do
   When we have an application start up we will put a message in the
   console to notify the developer.
 
-  When we have an non-esential application fail we return `:continue` to
+  When we have an non-essential application fail we return `:continue` to
   inform the system to keep going like nothing happened.
 
-  We restart the esential application of our system two times, and
+  We restart the essential application of our system two times, and
   then we tell the system to halt if restarting wasn't fixing the
   system.
   """

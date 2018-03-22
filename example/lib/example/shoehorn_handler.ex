@@ -1,4 +1,4 @@
-defmodule Example.ShoehornHandler do
+defmodule Example.RestartHandler do
   use Shoehorn.Handler
 
   def init(_opts) do
