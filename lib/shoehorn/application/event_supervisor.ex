@@ -1,11 +1,11 @@
 defmodule Shoehorn.Application.EventSupervisor do
   @moduledoc false
-  
+
   @behaviour :gen_event
   @shutdown_timer 30_000
 
   def init(opts) do
-    handler = opts[:handler] || Shoehorn.Handler
+    handler = opts[:handler] || Shoehorn.Handler.Default
     shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
     
     {:ok, handler_state} = handler.init(opts)
@@ -20,13 +20,23 @@ defmodule Shoehorn.Application.EventSupervisor do
     {:ok, :ok, s}
   end
 
-  def handle_event({:info_report, _pid, {_, :std_info, info}} = event, s) when is_list(info) do
+  def handle_event({:info_report, _pid, {_, :std_info, info}}, s) when is_list(info) do
     case Keyword.get(info, :exited) do
       nil -> 
         {:ok, s}
       reason ->
         app = Keyword.get(info, :application)
-        {:ok, shutdown(app, reason, s)}
+        {:ok, exited(app, reason, s)}
+    end
+  end
+
+  def handle_event({:info_report, _pid, {_, :progress, info}}, s) when is_list(info) do
+    case Keyword.get(info, :started_at) do
+      nil -> 
+        {:ok, s}
+      _node ->
+        app = Keyword.get(info, :application)
+        {:ok, started(app, s)}
     end
   end
 
@@ -38,15 +48,36 @@ defmodule Shoehorn.Application.EventSupervisor do
     :ok
   end
 
-  defp shutdown(app, reason, s) do
+  defp exited(app, reason, s) do
     {:ok, shutdown_timer_ref} = :timer.apply_after(s.shutdown_timer, :erlang, :halt, [])
-
-    case apply(s.handler, :handle_application, [reason, app, s.handler_state]) do
-      {:halt, _handler_state} ->
+    try do
+      case apply(s.handler, :application_exited, [app, reason, s.handler_state]) do
+        {:halt, _handler_state} ->
+          :erlang.halt()
+        {:continue, handler_state} ->
+          :timer.cancel(shutdown_timer_ref)
+          %{s | handler_state: handler_state}
+      end
+    rescue
+      e ->
+        IO.puts("Shoehorn handler raised an exception: #{inspect e}")
+        IO.puts("halt")
         :erlang.halt()
-      {:continue, handler_state} ->
-        :timer.cancel(shutdown_timer_ref)
-        %{s | handler_state: handler_state}
+    end
+  end
+
+  defp started(app, s) do
+    try do
+      case apply(s.handler, :application_started, [app, s.handler_state]) do
+        {:halt, _handler_state} ->
+          :erlang.halt()
+        {:continue, handler_state} ->
+          %{s | handler_state: handler_state}
+      end
+    rescue 
+      e ->
+        IO.puts("Shoehorn handler raised an exception: #{inspect e}")
+        IO.puts("continue")
     end
   end
 end
