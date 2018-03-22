@@ -10,47 +10,52 @@ defmodule Shoehorn.Handler do
   ## Example
 
   The Shoehorn.Handler behaviour requires developers to implement two
-  callbacks. The `init` callback sets up any state the handler needs.
-  The `handle_application` callback processes the incoming failure and
-  replies with the action that the `Shoehorn.ApplicationController`
-  should take in case of application failure.
+  callbacks.
+
+  The `init` callback sets up any state the handler needs.
+
+  Ther `application_started` callback is called when an application
+  starts up.
+
+  The `application_exited` callback processes the incoming failure and
+  replies with the action that `Shoehorn` should take in case of
+  application failure.
 
           defmodule Example.ShoehornHandler do
-            @behaviour Shoehorn.Handler
+            use Shoehorn.Handler
 
             def init(_opts) do
               {:ok, %{restart_counts: 0}}
             end
 
-            def handle_application({:exited, {:bad_return, _}}, _, state) do
-              {:halt, state}
-            end
-
-            def handle_application(:stopped, :non_esential_app, state) do
+            def application_started(app, state) do
+              IO.inspect app
               {:continue, state}
             end
 
-            def handle_application(:stopped, :esential_app, %{restart_counts: restart_counts} = state) when restart_counts < 2 do
+            def application_exited(:non_esential_app, _reason,  state) do
+              {:continue, state}
+            end
+
+            def application_exited(:esential_app, _reason, %{restart_counts: restart_counts} = state) when restart_counts < 2 do
               Application.ensure_all_started(:essential_app)
               {:continue, %{state | restart_counts: restart_counts + 1}}
             end
 
-            def handle_application(:stopped, _, state) do
+            def applicaton_exited(_, state) do
               {:halt, state}
             end
           end
 
-  We initailize our `Shoehorn.Handler` with a restart count for state
+  We initialize our `Shoehorn.Handler` with a restart count for state
   by calling `init` with the configuration options from our shoehorn
   config. This state is stored and passed in from the
   `Shoehorn.ApplicationController`.
 
-  The next step is to implement our handlers. When called with
-  `:not_started` an application failed in `init` and never started
-  running. In our case we are going to inform the controller that
-  the system should completely shutdown and there is no saving.
+  When we have an application start up we will put a message in the
+  console to notify the developer.
 
-  When we have an app that is non-esential we return `:contiue` to
+  When we have an non-esential application fail we return `:continue` to
   inform the system to keep going like nothing happened.
 
   We restart the esential application of our system two times, and
@@ -61,18 +66,15 @@ defmodule Shoehorn.Handler do
   @typedoc """
   The action letting `Shoehorn.ApplicationController` know what to do
 
-  * `:contine` - keep the system going like nothing happened
+  * `:continue` - keep the system going like nothing happened
   * `:halt`    - stop the application and bring the system down
   """
-  @type action :: :contine | :halt
+  @type action :: :continue | :halt
 
   @typedoc """
   The cause that is firing the handler
-
-  * `:not_started` - the application failed during init
-  * `:stopped` - the application has stopped
   """
-  @type cause :: {:bad_return, any} | any
+  @type cause :: any
 
   @doc """
   Callback to intialize the handle
@@ -91,6 +93,9 @@ defmodule Shoehorn.Handler do
   state. It must return a tuple containg the `action` that the
   `Shoehorn.ApplicationController` should take, and the new state
   of the handler.
+
+  The default implementation returns unchanged state, and a `:halt`
+  action.
   """
   @callback application_exited(cause, app :: atom, state :: any) :: {action, state :: any}
 
@@ -101,8 +106,11 @@ defmodule Shoehorn.Handler do
   state. It must return a tuple containg the `action` that the
   `Shoehorn.ApplicationController` should take, and the new state
   of the handler.
+
+  The default implementation returns unchanged state, and a `:continue`
+  action.
   """
-  @callback application_exited(cause, app :: atom, state :: any) :: {action, state :: any}
+  @callback application_started(app :: atom, state :: any) :: {action, state :: any}
 
   defmacro __using__(_opts) do
     quote do
@@ -111,17 +119,48 @@ defmodule Shoehorn.Handler do
       def init(_opts) do
         {:ok, :no_state}
       end
-      
+
       def application_started(_app, state) do
         {:continue, state}
       end
 
-      def application_exited(_app ,_reason, state) do
+      def application_exited(_app, _reason, state) do
         {:halt, state}
       end
 
-      defoverridable [init: 1, application_started: 2, application_exited: 3]
+      defoverridable init: 1, application_started: 2, application_exited: 3
     end
   end
-  
+
+  @type t :: %__MODULE__{module: atom, state: any}
+  @type opts :: [handler: atom]
+
+  defstruct [:module, :state]
+
+  @spec init(opts) :: t | no_return
+  def init(opts) do
+    module = opts[:handler] || Shoehorn.Handler.Default
+    {:ok, state} = module.init(opts)
+    %__MODULE__{module: module, state: state}
+  end
+
+  @spec invoke(:application_exited, app :: atom, cause, t) :: {action, t}
+  def invoke(:application_exited = event, app, cause, %__MODULE__{state: state, module: module} = handler) do
+    {action, new_state} = apply(module, event, [app, cause, state])
+    {action, %{handler | state: new_state}}
+  rescue
+    e ->
+      IO.puts("Shoehorn handler raised an exception: #{inspect(e)}")
+      {:halt, state}
+  end
+
+  @spec invoke(:application_started, app :: atom, t) :: {action, t}
+  def invoke(:application_started = event, app, %__MODULE__{state: state, module: module} = handler) do
+    {action, new_state} = apply(module, event, [app, state])
+    {action, %{handler | state: new_state}}
+  rescue
+    e ->
+      IO.puts("Shoehorn handler raised an exception: #{inspect(e)}")
+      {:continue, state}
+  end
 end
