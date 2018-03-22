@@ -30,6 +30,6 @@ use Mix.Config
 #     import_config "#{Mix.env}.exs"
 
 config :shoehorn,
-  init: [{IO, :puts, ["init_1"]},{IO, :puts, ["init_2"]}],
+  init: [{IO, :puts, ["init_1"]}, {IO, :puts, ["init_2"]}],
   app: :example,
   handler: Example.ShoehornHandler

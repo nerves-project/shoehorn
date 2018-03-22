@@ -22,19 +22,20 @@ defmodule Shoehorn.Handler do
               {:ok, %{restart_counts: 0}}
             end
 
-            def handle_application(:not_started, _, state) do
+            def handle_application({:bad_return, _}, _, state) do
               {:halt, state}
             end
 
-            def handle_application({:stopped, reason}, :non_esential_app, state) do
+            def handle_application(:stopped, :non_esential_app, state) do
               {:continue, state}
             end
 
-            def handle_application({:stopped, reason}, :esential_app, %{restart_counts: restart_counts} = state) when restart_counts < 2 do
-              {:restart, %{state | restart_counts: restart_counts + 1}}
+            def handle_application(:stopped, :esential_app, %{restart_counts: restart_counts} = state) when restart_counts < 2 do
+              Application.ensure_all_started(:essential_app)
+              {:continue, %{state | restart_counts: restart_counts + 1}}
             end
 
-            def handle_application({:stopped, reason}, _, state) do
+            def handle_application(:stopped, _, state) do
               {:halt, state}
             end
           end
@@ -61,18 +62,17 @@ defmodule Shoehorn.Handler do
   The action letting `Shoehorn.ApplicationController` know what to do
 
   * `:contine` - keep the system going like nothing happened
-  * `:restart` - restart the application
   * `:halt`    - stop the application and bring the system down
   """
-  @type action :: :continue | :restart | :halt
+  @type action :: :contine | :halt
 
   @typedoc """
   The cause that is firing the handler
 
   * `:not_started` - the application failed during init
-  * `{:stopped, reason}` - the application has stopped with the reason given
+  * `:stopped` - the application has stopped
   """
-  @type cause :: :not_started | {:stopped, any}
+  @type cause :: {:bad_return, any} | any
 
   @doc """
   Callback to intialize the handle

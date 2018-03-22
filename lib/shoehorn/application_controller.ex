@@ -2,7 +2,6 @@ defmodule Shoehorn.ApplicationController do
   use GenServer
 
   @timeout 30_000
-  @shutdown_timer 30_000
   @overlay_path "/tmp/shoehorn"
 
   alias Shoehorn.Utils
@@ -28,28 +27,21 @@ defmodule Shoehorn.ApplicationController do
   end
 
   def init(opts) do
+    :error_logger.add_report_handler(Shoehorn.Application.EventSupervisor, opts)
+
     app = app(opts[:app])
 
     init = opts[:init] || []
     init = reject_missing_apps(init)
 
-    shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
-
     overlay_path = opts[:overlay_path] || @overlay_path
-    handler = opts[:handler] || Shoehorn.Handler
-
-    {:ok, handler_state} = handler.init(opts)
-
+  
     s = %{
       init: init,
       app: app,
       hash: nil,
       applications: [],
       overlay_path: overlay_path,
-      handler: handler,
-      handler_state: handler_state,
-      monitors: [],
-      shutdown_timer: shutdown_timer,
       status: :init
     }
 
@@ -78,71 +70,33 @@ defmodule Shoehorn.ApplicationController do
 
   # Shoehorn Application Init Phase
   def handle_info(:init, s) do
-    result =
-      Enum.reduce(s.init, {:ok, s}, fn
-        app, {:ok, s} -> start_app(app, s)
-        _app, {:error, s} -> {:error, s}
-      end)
-
-    case result do
-      {:ok, s} ->
-        send(self(), :app)
-        {:noreply, %{s | status: :app}}
-
-      {:error, s} ->
-        {:noreply, s}
-    end
-  end
-
-  # Shoehorn Application Start Phase
-  def handle_info(:app, %{status: :shutdown} = s) do
-    {:noreply, s}
+    Enum.each(s.init, &start_app/1)
+    send(self(), :app)
+    {:noreply, %{s | status: :app}}
   end
 
   def handle_info(:app, s) do
-    {_, s} = start_app(s.app, s)
+    start_app(s.app)
     {:noreply, build_cache(s)}
-  end
-
-  # Application stopped
-  def handle_info({:DOWN, _ref, _, _, _}, %{status: :shutdown} = s), do: {:noreply, s}
-
-  def handle_info({:DOWN, ref, _, _, reason}, s) do
-    case Enum.split_with(s.monitors, fn {_, app_ref} -> app_ref == ref end) do
-      {[], _monitors} ->
-        {:noreply, s}
-
-      {[{app, _}], monitors} ->
-        {:noreply, shutdown(app, {:stopped, reason}, %{s | monitors: monitors})}
-    end
   end
 
   def handle_info(_unknown, s) do
     {:noreply, s}
   end
 
-  defp start_app({m, f, a}, s) when is_list(a) do
+  defp start_app({m, f, a}) when is_list(a) do
     apply(m, f, a)
-    {:ok, s}
   end
 
-  defp start_app({m, a}, s) when is_list(a) do
+  defp start_app({m, a}) when is_list(a) do
     apply(m, :start_link, a)
-    {:ok, s}
   end
 
-  defp start_app(app, s) when is_atom(app) do
-    case Application.ensure_all_started(app) do
-      {:ok, apps} ->
-        monitors = monitor_applications(apps, s.monitors)
-        {:ok, %{s | monitors: monitors}}
-
-      _ ->
-        {:error, shutdown(app, :not_started, s)}
-    end
+  defp start_app(app) when is_atom(app) do
+    Application.ensure_all_started(app)
   end
 
-  defp start_app(init_call, s) do
+  defp start_app(init_call) do
     IO.puts("""
     Shoehorn encountered an error while trying to call #{inspect(init_call)}
     during initialization. The argument needs to be formated as
@@ -151,34 +105,7 @@ defmodule Shoehorn.ApplicationController do
     {Module, [args]}
     :application
     """)
-
-    {:ok, s}
-  end
-
-  defp shutdown(app, message, s) do
-    {:ok, shutdown_timer_ref} = :timer.apply_after(s.shutdown_timer, :erlang, :halt, [])
-
-    {action, new_handler_state} =
-      apply(s.handler, :handle_application, [message, app, s.handler_state])
-
-    level = if app == s.app, do: :app, else: :init
-
-    s =
-      case action do
-        :halt ->
-          :erlang.halt()
-
-        :restart ->
-          send(self(), level)
-          {_, s} = start_app(app, s)
-          s
-
-        :continue ->
-          s
-      end
-
-    :timer.cancel(shutdown_timer_ref)
-    %{s | handler_state: new_handler_state, status: level}
+    :ok
   end
 
   defp build_cache(s) do
@@ -234,22 +161,6 @@ defmodule Shoehorn.ApplicationController do
 
       _ ->
         true
-    end)
-  end
-
-  def monitor_applications(applications, monitors) do
-    Enum.reduce(applications, monitors, fn app, monitors ->
-      case :application_controller.get_master(app) do
-        pid when is_pid(pid) ->
-          if ref = Keyword.get(monitors, app) do
-            Process.demonitor(pid)
-          end
-
-          Keyword.put(monitors, app, Process.monitor(pid))
-
-        _ ->
-          monitors
-      end
     end)
   end
 end
