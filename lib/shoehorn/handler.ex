@@ -145,7 +145,12 @@ defmodule Shoehorn.Handler do
   end
 
   @spec invoke(:application_exited, app :: atom, cause, t) :: {action, t}
-  def invoke(:application_exited = event, app, cause, %__MODULE__{state: state, module: module} = handler) do
+  def invoke(
+        :application_exited = event,
+        app,
+        cause,
+        %__MODULE__{state: state, module: module} = handler
+      ) do
     {action, new_state} = apply(module, event, [app, cause, state])
     {action, %{handler | state: new_state}}
   rescue
@@ -155,7 +160,11 @@ defmodule Shoehorn.Handler do
   end
 
   @spec invoke(:application_started, app :: atom, t) :: {action, t}
-  def invoke(:application_started = event, app, %__MODULE__{state: state, module: module} = handler) do
+  def invoke(
+        :application_started = event,
+        app,
+        %__MODULE__{state: state, module: module} = handler
+      ) do
     {action, new_state} = apply(module, event, [app, state])
     {action, %{handler | state: new_state}}
   rescue
