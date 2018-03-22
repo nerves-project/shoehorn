@@ -105,3 +105,19 @@ defmodule Shoehorn.TestCase do
     for path <- :code.get_path(), :string.str(path, tmp) != 0, do: :code.del_path(path)
   end
 end
+
+defmodule ShoehornTest.Handler do
+  use Shoehorn.Handler
+
+  def init(_opts) do
+    {:ok, nil}
+  end
+
+  def application_started(_app, state) do
+    {:continue, state}
+  end
+
+  def application_exited(_app, _reason, state) do
+    {:continue, state}
+  end
+end

@@ -33,7 +33,7 @@ defmodule Shoehorn.OverlayTest do
 
     Shoehorn.Utils.rpc(source_node, :application, :start, [:shoehorn])
     Shoehorn.Utils.rpc(target_node, :application, :start, [:shoehorn])
-    opts = [app: :simple_app, overlay_dir: overlay_dir]
+    opts = [app: :simple_app, overlay_dir: overlay_dir, handler: ShoehornTest.Handler]
 
     Shoehorn.Utils.rpc(source_node, Shoehorn.ApplicationController, :start_link, [opts])
     Shoehorn.Utils.rpc(target_node, Shoehorn.ApplicationController, :start_link, [opts])
@@ -153,6 +153,7 @@ defmodule Shoehorn.OverlayTest do
   defp transfer_config(node, config) do
     Shoehorn.Utils.rpc(node, Application, :put_env, [:shoehorn, :app, :simple_app])
     Shoehorn.Utils.rpc(node, Application, :put_env, [:shoehorn, :overlay_path, config])
+    Shoehorn.Utils.rpc(node, Application, :put_env, [:shoehorn, :handler, ShoehornTest.Handler])
   end
 
   defp add_code_paths(node) do
