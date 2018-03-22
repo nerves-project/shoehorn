@@ -27,7 +27,7 @@ defmodule Shoehorn.ApplicationController do
   end
 
   def init(opts) do
-    :error_logger.add_report_handler(Shoehorn.Application.EventSupervisor, opts)
+    :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
 
     app = app(opts[:app])
 
@@ -35,7 +35,7 @@ defmodule Shoehorn.ApplicationController do
     init = reject_missing_apps(init)
 
     overlay_path = opts[:overlay_path] || @overlay_path
-  
+
     s = %{
       init: init,
       app: app,
@@ -105,6 +105,7 @@ defmodule Shoehorn.ApplicationController do
     {Module, [args]}
     :application
     """)
+
     :ok
   end
 
