@@ -22,7 +22,7 @@ defmodule Shoehorn.Handler do
               {:ok, %{restart_counts: 0}}
             end
 
-            def handle_application({:bad_return, _}, _, state) do
+            def handle_application({:exited, {:bad_return, _}}, _, state) do
               {:halt, state}
             end
 
@@ -87,18 +87,41 @@ defmodule Shoehorn.Handler do
   @doc """
   Callback for handling application crashes
 
-  Called with the cause, application name, and the handlers current
+  Called with the application name, cause, and the handlers current
   state. It must return a tuple containg the `action` that the
   `Shoehorn.ApplicationController` should take, and the new state
   of the handler.
   """
-  @callback handle_application(cause, app :: atom, state :: any) :: {action, state :: any}
+  @callback application_exited(cause, app :: atom, state :: any) :: {action, state :: any}
 
-  def init(_opts) do
-    {:ok, :no_state}
-  end
+  @doc """
+  Callback for handling application starts
 
-  def handle_application(_reason, _app, state) do
-    {:halt, state}
+  Called with the application name, and the handlers current
+  state. It must return a tuple containg the `action` that the
+  `Shoehorn.ApplicationController` should take, and the new state
+  of the handler.
+  """
+  @callback application_exited(cause, app :: atom, state :: any) :: {action, state :: any}
+
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour Shoehorn.Handler
+
+      def init(_opts) do
+        {:ok, :no_state}
+      end
+      
+      def application_started(_app, state) do
+        {:continue, state}
+      end
+
+      def application_exited(_app ,_reason, state) do
+        {:halt, state}
+      end
+
+      defoverridable [init: 1, application_started: 2, application_exited: 3]
+    end
   end
+  
 end
