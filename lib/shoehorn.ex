@@ -23,7 +23,9 @@ defmodule Shoehorn do
       import Supervisor.Spec, warn: false
 
       opts = Application.get_all_env(:shoehorn)
-      [worker(Shoehorn.ApplicationController, [opts])]
+      [
+        worker(Shoehorn.ApplicationController, [opts])
+      ]
     else
       []
     end
