@@ -12,7 +12,8 @@ defmodule Shoehorn.Mixfile do
       description: description(),
       package: package(),
       source_url: "https://github.com/nerves-project/shoehorn",
-      deps: deps()
+      deps: deps(),
+      docs: docs()
     ]
   end
 
@@ -27,7 +28,16 @@ defmodule Shoehorn.Mixfile do
     [
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:distillery, "~> 1.0", runtime: false},
-      {:ex_doc, "~> 0.11", only: :dev}
+      {:ex_doc, "~> 0.18", only: :dev}
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: [
+        "README.md"
+      ]
     ]
   end
 
