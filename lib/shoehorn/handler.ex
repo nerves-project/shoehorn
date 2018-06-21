@@ -29,7 +29,6 @@ defmodule Shoehorn.Handler do
             end
 
             def application_started(app, state) do
-              IO.inspect app
               {:continue, state}
             end
 
