@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.3.0-dev
+## v0.3.0
 
 The default strategy for how Shoehorn handles OTP application exits has changed.
 Before this release, if an application were to exit the node would remain running
