@@ -7,6 +7,7 @@ defmodule ShoehornTest do
   import MixTestHelper
 
   @simple_app_path Path.join([File.cwd!(), "test", "fixtures", "simple_app"])
+  @no_handler_app_path Path.join([File.cwd!(), "test", "fixtures", "no_handler"])
 
   defmacrop with_simple_app(body) do
     quote do
@@ -101,5 +102,13 @@ defmodule ShoehornTest do
 
       System.cmd(app_path, ["stop"])
     end
+  end
+
+  test "Config missing handler will raise" do
+    old_dir = File.cwd!()
+    File.cd!(@no_handler_app_path)
+    mix("deps.get")
+    assert {:error, 1, _} = mix("compile")
+    File.cd!(old_dir)
   end
 end

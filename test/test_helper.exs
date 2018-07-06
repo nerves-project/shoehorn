@@ -1,3 +1,3 @@
-Application.put_env(:shoehorn, :handler, ShoehornTest.Handler)
+Mix.shell(Mix.Shell.Process)
 
 ExUnit.start()
