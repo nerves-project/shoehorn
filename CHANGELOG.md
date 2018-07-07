@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.1
+
+For Shoehorn, these are our goals:
+1: Fix current issue with prod devices turning to zombies
+2: Make it really really difficult to enter a brick state ever.
+
+It was becoming apparent that it is difficult to address goal #1 by changing the defaults without impacting goal #2 at all. We believe that its best to solve goal #1  by opting in and not by modifying the defaults.
+
+In this release, existing projects that do not declare a handler in the
+config will use `Shoehorn.Handler.Ignore`.
+
 ## v0.3.0
 
 The default strategy for how Shoehorn handles OTP application exits has changed.
