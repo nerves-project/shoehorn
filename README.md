@@ -95,17 +95,16 @@ permanence type specified when it was asked to start. There are three permanence
 Shoehorn will start all applications as `:temporary` and monitor application events by registering 
 to the erlang kernel [error_logger](http://erlang.org/doc/man/error_logger.html). Application start 
 and exit events will attempt to execute a callback to the configured `Shoehorn.Handler` module. By default, 
-the module `Shoehorn.Handler.Default` will be called. This module is configured to halt the Erlang VM 
-if any otp application were to exit for any reason. This is often desireable for use in production as is 
-restores the default behaviour of the permanent / transient permanence types. In development, you may 
-want to allow the node to hang on failure so you can gather forensics or perform updates to the node. 
-You can do this by overriding the handler in the dev env of your application config
+the module `Shoehorn.Handler.Ignore` will be called. This module is configured to continue the Erlang VM 
+if any otp application were to exit for any reason. In production, you may want to customize the action on 
+failure so you can gather forensics or perform updates to the node. You can do this by overriding the 
+handler in the prod env of your application config.
 
 ```elixir
-# config/dev.exs
+# config/prod.exs
 
 config :shoehorn,
-  handler: Shoehorn.Handler.Ignore
+  handler: MyApp.ShoehornHandler
 ```
 
 More advanced failure cases can be handled by providing your own module that implements
