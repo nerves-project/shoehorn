@@ -1,6 +1,18 @@
 defmodule Shoehorn.Utils do
   def shoehorn_applications() do
-    [:shoehorn, :kernel, :stdlib, :compiler, :elixir, :iex, :crypto, :logger]
+    [
+      :shoehorn,
+      :distillery,
+      :artificery,
+      :runtime_tools,
+      :kernel,
+      :stdlib,
+      :compiler,
+      :elixir,
+      :iex,
+      :crypto,
+      :logger
+    ]
   end
 
   def hash(blob) do
