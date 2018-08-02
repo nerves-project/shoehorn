@@ -3,8 +3,10 @@ defmodule Shoehorn do
   use Mix.Releases.Plugin
 
   alias Shoehorn.Utils
-  alias Mix.Releases.{App, Release}
+  alias Mix.Releases.{App, Release, Shell}
   alias Mix.Releases.Utils, as: ReleaseUtils
+
+  require Logger
 
   def start(_type, _args) do
     opts = [strategy: :one_for_one, name: Shoehorn.Supervisor]
@@ -63,7 +65,7 @@ defmodule Shoehorn do
     release = Release.new(:shoehorn, runtime_spec[:vsn])
     release = %{release | profile: app_release.profile}
 
-    release_apps = ReleaseUtils.get_apps(release)
+    release_apps = Release.apps(release)
     release = %{release | :applications => release_apps}
 
     rel_dir =
@@ -128,18 +130,13 @@ defmodule Shoehorn do
 
     case :systools.make_script('shoehorn', options) do
       {:error, _, e} ->
-        Logger.error(
-          "Shoehorn failed: " <>
-            inspect(e) <> "\n#{Exception.format_stacktrace(System.stacktrace())}"
-        )
-
-        exit({:shutdown, 1})
+        raise "Shoehorn failed to create bootscript with error: #{inspect(e)}"
 
       _ ->
         %Release{profile: %{output_dir: output_dir}, name: app} = app_release
         relative_output_dir = Path.relative_to_cwd(output_dir)
 
-        Logger.success("""
+        Shell.info("""
         Generated Shoehorn Boot Script
             Run using shoehorn:
               Interactive: #{relative_output_dir}/bin/#{app} console_boot shoehorn
@@ -150,5 +147,10 @@ defmodule Shoehorn do
       Path.join(rel_dir, "shoehorn.boot"),
       Path.join([app_release.profile.output_dir, "bin", "shoehorn.boot"])
     )
+  catch
+    _e ->
+      Logger.error("\n#{Exception.format_stacktrace(System.stacktrace())}")
+
+      exit({:shutdown, 1})
   end
 end
