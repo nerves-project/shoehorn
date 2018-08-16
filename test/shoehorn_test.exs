@@ -43,22 +43,23 @@ defmodule ShoehornTest do
       assert {:ok, _output} = r
 
       app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
-
+      boot_file = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/shoehorn"])
       {:ok, _task} =
         Task.start(fn ->
-          System.cmd(app_path, ["console_boot", "shoehorn"])
+          System.cmd(app_path, ["console_boot", boot_file])
         end)
 
-      :timer.sleep(1000)
+      :timer.sleep(2000)
       assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
 
       assert {applications, 0} =
-               System.cmd(app_path, ["eval", "'Elixir.Application':started_applications()"])
+               System.cmd(app_path, ["rpc", "Application.started_applications()"])
 
       assert applications =~ "shoehorn"
       assert applications =~ "simple_app"
 
       System.cmd(app_path, ["stop"])
+      :timer.sleep(1000)
     end
   end
 
@@ -93,13 +94,14 @@ defmodule ShoehornTest do
 
       assert {app_controller_pid, 0} =
                System.cmd(app_path, [
-                 "eval",
-                 "'Elixir.Process':whereis('Elixir.Shoehorn.ApplicationController')"
+                 "rpc",
+                 "Process.whereis(Shoehorn.ApplicationController)"
                ])
 
       assert app_controller_pid == "nil\n"
 
       System.cmd(app_path, ["stop"])
+      :timer.sleep(1000)
     end
   end
 end
