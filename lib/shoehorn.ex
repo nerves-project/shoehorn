@@ -139,7 +139,7 @@ defmodule Shoehorn do
         Shell.info("""
         Generated Shoehorn Boot Script
             Run using shoehorn:
-              Interactive: #{relative_output_dir}/bin/#{app} console_boot shoehorn
+              Interactive: #{relative_output_dir}/bin/#{app} console_boot #{relative_output_dir}/bin/shoehorn
         """)
     end
 
