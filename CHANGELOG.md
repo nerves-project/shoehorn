@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+* Enhancements
+  * Support for distillery ~> 2.0
+  * Support for Elixir ~> 1.7
+
 ## v0.3.1
 
 For Shoehorn, these are our goals:
