@@ -26,9 +26,9 @@ defmodule Shoehorn.Mixfile do
 
   defp deps do
     [
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:distillery, "~> 2.0", runtime: false},
-      {:ex_doc, "~> 0.18", only: :dev}
+      {:distillery, "~> 2.0"},
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.18", only: [:dev, :test], runtime: false}
     ]
   end
 
