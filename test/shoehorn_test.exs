@@ -44,6 +44,7 @@ defmodule ShoehornTest do
 
       app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
       boot_file = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/shoehorn"])
+
       {:ok, _task} =
         Task.start(fn ->
           System.cmd(app_path, ["console_boot", boot_file])

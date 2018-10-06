@@ -94,7 +94,6 @@ defmodule Shoehorn do
         n in Utils.shoehorn_applications()
       end)
 
-    # []
     load_apps = Enum.map(load_apps, &{&1.name, '#{&1.vsn}', :none})
 
     start_apps =
