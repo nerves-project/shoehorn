@@ -1,29 +1,8 @@
 defmodule Shoehorn.ApplicationController do
   use GenServer
 
-  @timeout 30_000
-  @overlay_path "/tmp/shoehorn"
-
-  alias Shoehorn.Utils
-
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
-  def hash() do
-    GenServer.call(__MODULE__, :hash)
-  end
-
-  def clear_cache() do
-    GenServer.call(__MODULE__, :clear_cache)
-  end
-
-  def applications() do
-    GenServer.call(__MODULE__, :applications, @timeout)
-  end
-
-  def apply_overlay(overlay) do
-    GenServer.call(__MODULE__, {:overlay, :apply, overlay}, @timeout)
   end
 
   def init(opts) do
@@ -34,38 +13,14 @@ defmodule Shoehorn.ApplicationController do
     init = opts[:init] || []
     init = reject_missing_apps(init)
 
-    overlay_path = opts[:overlay_path] || @overlay_path
-
     s = %{
       init: init,
       app: app,
-      hash: nil,
-      applications: [],
-      overlay_path: overlay_path,
       status: :init
     }
 
     send(self(), :init)
     {:ok, s}
-  end
-
-  def handle_call(:hash, _from, s) do
-    {:reply, s.hash, s}
-  end
-
-  def handle_call(:applications, _from, s) do
-    {:reply, s.applications, s}
-  end
-
-  def handle_call(:clear_cache, _from, s) do
-    {:reply, :ok, build_cache(s)}
-  end
-
-  def handle_call({:overlay, :apply, overlay}, _from, s) do
-    reply = Shoehorn.Overlay.apply(overlay, s.overlay_path)
-    Application.stop(s.app)
-    Application.ensure_all_started(s.app)
-    {:reply, reply, build_cache(s)}
   end
 
   # Shoehorn Application Init Phase
@@ -77,7 +32,7 @@ defmodule Shoehorn.ApplicationController do
 
   def handle_info(:app, s) do
     start_app(s.app)
-    {:noreply, build_cache(s)}
+    {:noreply, s}
   end
 
   def handle_info(_unknown, s) do
@@ -109,33 +64,13 @@ defmodule Shoehorn.ApplicationController do
     :ok
   end
 
-  defp build_cache(s) do
-    applications_list = [s.app | filter_apps(s.init)]
-    hash = build_hash(applications_list)
-    applications = build_applications(applications_list)
-    %{s | hash: hash, applications: applications}
-  end
-
-  defp build_hash(application_list) do
-    application_list
-    |> Enum.map(&Shoehorn.Application.load/1)
-    |> Enum.map(& &1.hash)
-    |> Enum.join()
-    |> Utils.hash()
-  end
-
-  defp build_applications(application_list) do
-    application_list
-    |> Enum.map(&Shoehorn.Application.load/1)
-  end
-
   def app(nil) do
     IO.puts("[Shoehorn] app undefined. Finished booting")
     :shoehorn
   end
 
   def app(app) do
-    if Shoehorn.Application.exists?(app) do
+    if application_exists?(app) do
       app
     else
       IO.puts("[Shoehorn] app undefined. Finished booting")
@@ -153,7 +88,7 @@ defmodule Shoehorn.ApplicationController do
   def reject_missing_apps(apps) do
     Enum.filter(apps, fn
       app when is_atom(app) ->
-        if Shoehorn.Application.exists?(app) do
+        if application_exists?(app) do
           true
         else
           IO.puts("[Shoehorn] Init app #{inspect(app)} undefined. Skipping")
@@ -163,5 +98,39 @@ defmodule Shoehorn.ApplicationController do
       _ ->
         true
     end)
+  end
+
+  def application_exists?(nil), do: false
+
+  def application_exists?(app) do
+    application_spec(app) != nil
+  end
+
+  def application_spec(app) do
+    try do
+      {:ok, application_spec} =
+        Path.join([application_ebin(app), "#{app}.app"])
+        |> :file.consult()
+
+      {_, _, application_spec} =
+        Enum.find(application_spec, fn
+          {:application, ^app, _} -> true
+          _ -> false
+        end)
+
+      application_spec
+    rescue
+      _ ->
+        Application.load(app)
+        Application.spec(app)
+    end
+  end
+
+  def application_lib_dir(app) do
+    :code.lib_dir(app)
+  end
+
+  def application_ebin(app) do
+    Path.join([application_lib_dir(app), "ebin"])
   end
 end
