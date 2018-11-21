@@ -19,6 +19,7 @@ update. This is especially useful when running [Nerves](https://circleci.com/gh/
 Here's how it works.
 
 Include `shoehorn` into your application release plugins.
+
 ```elixir
 # rel/config.exs
 
@@ -29,16 +30,19 @@ end
 ```
 
 And produce a release
+
 ```sh
-$ mix release
+mix release
 ```
 
 Go to the release directory and boot your app using `shoehorn`
+
 ```sh
-$ _build/dev/rel/simple_app/bin/simple_app console_boot shoehorn
+_build/dev/rel/simple_app/bin/simple_app console_boot shoehorn
 ```
 
 From here we can see that the shoehorn was started, but `simple_app` was not.
+
 ```elixir
 iex(simple_app@127.0.0.1)1> Application.started_applications
 [{:iex, 'iex', '1.4.0'}, {:shoehorn, 'shoehorn', '0.1.0'},
@@ -46,7 +50,7 @@ iex(simple_app@127.0.0.1)1> Application.started_applications
  {:stdlib, 'ERTS  CXC 138 10', '3.2'}, {:kernel, 'ERTS  CXC 138 10', '5.1.1'}]
 ```
 
-Booting the shoehorn.boot script with zero application config will bring up the 
+Booting the shoehorn.boot script with zero application config will being up the
 Erlang VM and only run the `shoehorn` app.
 
 Now let's configure `shoehorn` to do something more interesting by adding some
@@ -61,14 +65,14 @@ config :shoehorn,
 ```
 
 Shoehorn will call `Application.ensure_all_started/2` on each app in the `init`
-list, followed by the main `app`. In the example above, the boot sequence would be 
+list, followed by the main `app`. In the example above, the boot sequence would be
 `[:nerves_runtime, :nerves_init_gadget, :my_app]`. The `init` application list
 should be used to prioritize OTP applications that need to be available to recover
-from error. In the example above, we initialize the runtime, bring up the network, 
+from error. In the example above, we initialize the runtime, bring up the network,
 and ensure we can receive new firmware updates. If `my_app` were to fail to start,
 the node would still be in a state where it can receive new firmware over the network.
 
-You can also specify an `{m, f, a}` in the init list for performing 
+You can also specify an `{m, f, a}` in the init list for performing
 simple initialization time tasks.
 
 ```elixir
@@ -81,24 +85,27 @@ config :shoehorn,
 
 ## Application Failures
 
-The Erlang VM will respond to application failures based off the application start 
-permanence type specified when it was asked to start. There are three permanence types: 
+The Erlang VM will respond to application failures based off the application start
+permanence type specified when it was asked to start. There are three permanence types:
 
-  `:permanent` - if app terminates, all other applications and the entire node are also terminated.
+  `:permanent` - if app terminates, all other applications and the entire node
+  are also terminated.
 
-  `:transient` - if app terminates with :normal reason, it is reported but no other applications 
-  are terminated. If a transient application terminates abnormally, all other applications and the 
-  entire node are also terminated.
+  `:transient` - if app terminates with :normal reason, it is reported but no
+  other applications are terminated. If a transient application terminates
+  abnormally, all other applications and the entire node are also terminated.
 
-  `:temporary` - if app terminates, it is reported but no other applications are terminated (the default).
+  `:temporary` - if app terminates, it is reported but no other applications are
+  terminated (the default).
 
-Shoehorn will start all applications as `:temporary` and monitor application events by registering 
-to the erlang kernel [error_logger](http://erlang.org/doc/man/error_logger.html). Application start 
-and exit events will attempt to execute a callback to the configured `Shoehorn.Handler` module. By default, 
-the module `Shoehorn.Handler.Ignore` will be called. This module is configured to continue the Erlang VM 
-if any otp application were to exit for any reason. In production, you may want to customize the action on 
-failure so you can gather forensics or perform updates to the node. You can do this by overriding the 
-handler in the prod env of your application config.
+Shoehorn will start all applications as `:temporary` and monitor application
+events by registering to the erlang kernel [error_logger](http://erlang.org/doc/man/error_logger.html).
+Application start and exit events will attempt to execute a callback to the
+configured `Shoehorn.Handler` module. By default, the module `Shoehorn.Handler.Ignore`
+will be called. This module is configured to continue the Erlang VM if any otp
+application were to exit for any reason. In production, you may want to customize
+the action on failure so you can gather forensics or perform updates to the node.
+You can do this by overriding the handler in the prod env of your application config.
 
 ```elixir
 # config/prod.exs
@@ -137,8 +144,17 @@ config :shoehorn,
   shutdown_timer: 50_000 # 50 Seconds
 ```
 
-Check out the [example application](https://github.com/nerves-project/shoehorn/tree/master/example) for more info on implementing custom strategies. 
+Check out the [example application](https://github.com/nerves-project/shoehorn/tree/master/example) for more info on implementing custom strategies.
+
+## Distillery overrides
+
+Shoehorn will alter the release defaults to omit `:mix` and `:distillery` from
+the list of default applications to include. If you depend on these applications
+at runtime, you can add `:distillery` to the `extra_applications` list and or
+`:mix` to the `included_applications` list in the `application/0` callback in
+your `mix.exs` file.
 
 ## Thanks
+
 Big thanks to [Sonny Scroggin](https://github.com/scrogson) for coming up with
 the name Shoehorn <3
