@@ -8,6 +8,8 @@ defmodule Shoehorn do
 
   require Logger
 
+  @excluded_applications [:distillery, :mix]
+
   def start(_type, _args) do
     opts = [strategy: :one_for_one, name: Shoehorn.Supervisor]
     Supervisor.start_link(children(), opts)
@@ -38,7 +40,8 @@ defmodule Shoehorn do
 
   # Distillery Behaviour
   def before_assembly(%Release{} = release, _opts) do
-    release
+    {_, applications} = Enum.split_with(release.applications, &(&1 in @excluded_applications))
+    %{release | applications: applications}
   end
 
   def after_assembly(%Release{} = release, _opts) do

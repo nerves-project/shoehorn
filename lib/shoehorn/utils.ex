@@ -2,8 +2,6 @@ defmodule Shoehorn.Utils do
   def shoehorn_applications() do
     [
       :shoehorn,
-      :distillery,
-      :artificery,
       :runtime_tools,
       :kernel,
       :stdlib,
