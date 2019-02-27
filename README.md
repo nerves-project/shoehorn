@@ -16,7 +16,7 @@ for the entire runtime including its own updates. In these situations, if
 the VM were to fail to start it would never be able to recover from a bad
 update. This is especially useful when running [Nerves](https://circleci.com/gh/nerves-project).
 
-Heres how it works.
+Here's how it works.
 
 Include `shoehorn` into your application release plugins.
 ```elixir
@@ -46,10 +46,10 @@ iex(simple_app@127.0.0.1)1> Application.started_applications
  {:stdlib, 'ERTS  CXC 138 10', '3.2'}, {:kernel, 'ERTS  CXC 138 10', '5.1.1'}]
 ```
 
-Booting the shoehorn.boot script with zero application config will being up the 
+Booting the shoehorn.boot script with zero application config will bring up the 
 Erlang VM and only run the `shoehorn` app.
 
-Now lets configure `shoehorn` to do something more interesting by adding some
+Now let's configure `shoehorn` to do something more interesting by adding some
 minimal configuration.
 
 ```elixir
