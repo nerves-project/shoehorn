@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0
+
+* Enhancements
+  * Exclude distillery, artificery, and mix from the release by default.
+  * Removed RPC and application overlay modules.
+  * Updated deps and docs.
+
 ## v0.4.0
 
 * Enhancements
@@ -24,7 +31,7 @@ Before this release, if an application were to exit the node would remain runnin
 and that applications would remain stopped. This may be desireable for development
 and test but is typically undesireable in production. This behaviour can be
 customized by configuring the `handler` in the config. For example, in dev you can
-use the module `Shoehorn.Handler.Ignore` to prevent the node from halting on failure. 
+use the module `Shoehorn.Handler.Ignore` to prevent the node from halting on failure.
 
   ```elixir
   # config/dev.exs
