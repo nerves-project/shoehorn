@@ -19,6 +19,23 @@ defaults: &defaults
 version: 2
 
 jobs:
+  build_elixir_1_9_otp_22:
+    docker:
+      - image: erlang:22.0.2
+        environment:
+          ELIXIR_VERSION: 1.9.0-otp-22
+          LC_ALL: C.UTF-8
+          SUDO: true
+    <<: *defaults
+    steps:
+      - checkout
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix test --exclude distillery
+      - run: mix docs
+
   build_elixir_1_8_otp_22:
     docker:
       - image: erlang:22.0.2
@@ -32,9 +49,8 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - run: mix deps.get
-      - run: mix format --check-formatted
-      - run: mix test
-      - run: mix docs
+      - run: mix test --exclude elixir_release
+
   build_elixir_1_8_otp_21:
     docker:
       - image: erlang:21.2.7
@@ -48,8 +64,7 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - run: mix deps.get
-      - run: mix format --check-formatted
-      - run: mix test
+      - run: mix test --exclude elixir_release
 
   build_elixir_1_7_otp_21:
     docker:
@@ -64,9 +79,7 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - run: mix deps.get
-      - run: mix format --check-formatted
-      - run: mix test
-      - run: mix docs
+      - run: mix test --exclude elixir_release
 
   build_elixir_1_6_otp_21:
     docker:
@@ -81,7 +94,7 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - run: mix deps.get
-      - run: mix test
+      - run: mix test --exclude elixir_release
 
   build_elixir_1_6_otp_20:
     docker:
@@ -96,12 +109,14 @@ jobs:
       - <<: *install_elixir
       - <<: *install_hex_rebar
       - run: mix deps.get
-      - run: mix test
+      - run: mix test --exclude elixir_release
 
 workflows:
   version: 2
   build_test:
     jobs:
+      - build_elixir_1_9_otp_22:
+          context: org-global
       - build_elixir_1_8_otp_22:
           context: org-global
       - build_elixir_1_8_otp_21:
