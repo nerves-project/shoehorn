@@ -7,7 +7,8 @@ defmodule Example.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      releases: releases()
     ]
   end
 
@@ -19,10 +20,21 @@ defmodule Example.MixProject do
     ]
   end
 
+  def releases do
+    [
+      example: [
+        overwrite: true,
+        quiet: true,
+        steps: [&Shoehorn.Release.init/1, :assemble]
+      ]
+    ]
+  end
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:shoehorn, path: "../"}
+      {:shoehorn, path: "../"},
+      {:distillery, "~> 2.1"},
     ]
   end
 end

@@ -7,14 +7,15 @@
 |> Path.wildcard()
 |> Enum.map(&Code.eval_file(&1))
 
-use Mix.Releases.Config,
-  # This sets the default release built by `mix release`
-  default_release: :default,
-  # This sets the default environment used by `mix release`
-  default_environment: Mix.env()
+use Distillery.Releases.Config,
+    # This sets the default release built by `mix distillery.release`
+    default_release: :default,
+    # This sets the default environment used by `mix distillery.release`
+    default_environment: Mix.env()
 
 # For a full list of config options for both releases
-# and environments, visit https://hexdocs.pm/distillery/configuration.html
+# and environments, visit https://hexdocs.pm/distillery/config/distillery.html
+
 
 # You may define one or more environments in this file,
 # an environment's settings will override those of a release
@@ -28,29 +29,28 @@ environment :dev do
   # It is recommended that you build with MIX_ENV=prod and pass
   # the --env flag to Distillery explicitly if you want to use
   # dev mode.
-  set(dev_mode: true)
-  set(include_erts: false)
-  set(cookie: :"[;&(.8e$VHlk<8:mN%X%.kS/e:e&_7yqIMf?U!9*~QdJAYL{)AtG<jahu$mp/3P.")
+  set dev_mode: true
+  set include_erts: false
+  set cookie: :"%9w`A~Z/5p@B:Mc|p4DL0b$t!GIwtTG8S05}gDRx?I)KSciPDEdat{9>}lGOL4Rt"
 end
 
 environment :prod do
-  set(include_erts: true)
-  set(include_src: false)
-  set(cookie: :"(h=u)zRFgT~^oG<M_K[%9I.o|d|S7eC=HwUZwdzE<Wr4%2b~M|8}8.Uvh:baY>48")
+  set include_erts: true
+  set include_src: false
+  set cookie: :"rL2E>XTVG9P5>u4fnkFvr*z:aEAjo%.6sHB>kxVy[W_hnr2Ej*{(S3P|r!LIs^n<"
+  set vm_args: "rel/vm.args"
 end
 
 # You may define one or more releases in this file.
 # If you have not set a default release, or selected one
-# when running `mix release`, the first release in the file
+# when running `mix distillery.release`, the first release in the file
 # will be used by default
 
 release :example do
-  plugin(Shoehorn)
-  set(version: current_version(:example))
-
-  set(
-    applications: [
-      :runtime_tools
-    ]
-  )
+  set version: current_version(:example)
+  set applications: [
+    :runtime_tools
+  ]
+  plugin Shoehorn
 end
+

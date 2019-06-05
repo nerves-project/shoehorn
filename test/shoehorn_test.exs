@@ -17,92 +17,182 @@ defmodule ShoehornTest do
       {:ok, _} = mix("deps.get")
       {:ok, _} = mix("deps.compile")
       {:ok, _} = mix("compile")
-      {:ok, _} = mix("release.clean")
       unquote(body)
+      {:ok, _} = File.rm_rf(Path.join(@simple_app_path, "_build"))
+      {:ok, _} = File.rm_rf(Path.join(@simple_app_path, "deps"))
       File.cd!(old_dir)
     end
   end
 
-  @tag :expensive
-  # 5m
-  @tag timeout: 60_000 * 5
-  test "Can build and release with Shoehorn" do
-    with_simple_app do
-      result = mix("release", ["--verbose", "--env=prod"])
+  describe "distillery" do
+    @tag :distillery
+    @tag :expensive
+    @tag timeout: 60_000 * 5
+    test "Can build and release with Shoehorn" do
+      with_simple_app do
+        result = mix("distillery.release", ["--verbose", "--env=prod"])
 
-      r =
-        case result do
-          {:ok, output} ->
-            {:ok, output}
+        r =
+          case result do
+            {:ok, output} ->
+              {:ok, output}
 
-          {:error, _code, output} ->
-            IO.puts(output)
-            :error
-        end
+            {:error, _code, output} ->
+              IO.puts(output)
+              :error
+          end
 
-      assert {:ok, _output} = r
+        assert {:ok, _output} = r
 
-      app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
-      boot_file = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/shoehorn"])
+        app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
+        boot_file = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/shoehorn"])
 
-      {:ok, _task} =
-        Task.start(fn ->
-          System.cmd(app_path, ["console_boot", boot_file])
-        end)
+        {:ok, _task} =
+          Task.start(fn ->
+            System.cmd(app_path, ["console_boot", boot_file])
+          end)
 
-      :timer.sleep(2000)
-      assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
+        :timer.sleep(2000)
+        assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
 
-      assert {applications, 0} =
-               System.cmd(app_path, ["rpc", "Application.started_applications()"])
+        assert {applications, 0} =
+                 System.cmd(app_path, ["rpc", "Application.started_applications()"])
 
-      assert applications =~ "shoehorn"
-      assert applications =~ "simple_app"
+        assert applications =~ "shoehorn"
+        assert applications =~ "simple_app"
 
-      System.cmd(app_path, ["stop"])
-      :timer.sleep(1000)
+        System.cmd(app_path, ["stop"])
+        :timer.sleep(1000)
+      end
+    end
+
+    @tag :distillery
+    @tag :expensive
+    @tag timeout: 60_000 * 5
+    test "Can build and release without Shoehorn" do
+      with_simple_app do
+        result = mix("distillery.release", ["--verbose", "--env=prod"])
+
+        r =
+          case result do
+            {:ok, output} ->
+              {:ok, output}
+
+            {:error, _code, output} ->
+              IO.puts(output)
+              :error
+          end
+
+        assert {:ok, _output} = r
+
+        app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
+
+        {:ok, _task} =
+          Task.start(fn ->
+            System.cmd(app_path, ["console"])
+          end)
+
+        :timer.sleep(1000)
+        assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
+
+        assert {app_controller_pid, 0} =
+                 System.cmd(app_path, [
+                   "rpc",
+                   "Process.whereis(Shoehorn.ApplicationController)"
+                 ])
+
+        assert app_controller_pid == "nil\n"
+
+        System.cmd(app_path, ["stop"])
+        :timer.sleep(1000)
+      end
     end
   end
 
-  @tag :expensive
-  # 5m
-  @tag timeout: 60_000 * 5
-  test "Can build and release without Shoehorn" do
-    with_simple_app do
-      result = mix("release", ["--verbose", "--env=prod"])
+  describe "elixir release" do
+    @tag :elixir_release
+    @tag :expensive
+    @tag timeout: 60_000 * 5
+    test "Can build and release with Shoehorn" do
+      with_simple_app do
+        result = mix("release", [])
 
-      r =
-        case result do
-          {:ok, output} ->
-            {:ok, output}
+        r =
+          case result do
+            {:ok, output} ->
+              {:ok, output}
 
-          {:error, _code, output} ->
-            IO.puts(output)
-            :error
-        end
+            {:error, _code, output} ->
+              IO.puts(output)
+              :error
+          end
 
-      assert {:ok, _output} = r
+        assert {:ok, _output} = r
 
-      app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
+        app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
 
-      {:ok, _task} =
-        Task.start(fn ->
-          System.cmd(app_path, ["console"])
-        end)
+        {:ok, _task} =
+          Task.start(fn ->
+            System.cmd(app_path, ["start"]) |> IO.inspect()
+          end)
 
-      :timer.sleep(1000)
-      assert {"pong\n", 0} = System.cmd(app_path, ["ping"])
+        :timer.sleep(2000)
+        assert {"hello\n", 0} = System.cmd(app_path, ["rpc", "IO.puts(:hello)"])
 
-      assert {app_controller_pid, 0} =
-               System.cmd(app_path, [
-                 "rpc",
-                 "Process.whereis(Shoehorn.ApplicationController)"
-               ])
+        assert {applications, 0} =
+                 System.cmd(app_path, [
+                   "rpc",
+                   "Application.started_applications() |> IO.inspect()"
+                 ])
 
-      assert app_controller_pid == "nil\n"
+        assert applications =~ "shoehorn"
+        assert applications =~ "simple_app"
 
-      System.cmd(app_path, ["stop"])
-      :timer.sleep(1000)
+        System.cmd(app_path, ["stop"])
+        :timer.sleep(1000)
+      end
+    end
+
+    @tag :elixir_release
+    @tag :expensive
+    @tag timeout: 60_000 * 5
+    test "Can build and release without Shoehorn" do
+      with_simple_app do
+        result = mix("release", [])
+
+        r =
+          case result do
+            {:ok, output} ->
+              {:ok, output}
+
+            {:error, _code, output} ->
+              IO.puts(output)
+              :error
+          end
+
+        assert {:ok, _output} = r
+
+        app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
+
+        {:ok, _task} =
+          Task.start(fn ->
+            System.cmd(app_path, ["start"])
+          end)
+
+        :timer.sleep(1000)
+        assert {"hello\n", 0} = System.cmd(app_path, ["rpc", "IO.puts(:hello)"])
+
+        assert {app_controller_pid, 0} =
+                 System.cmd(app_path, [
+                   "rpc",
+                   "Process.whereis(Shoehorn.ApplicationController) |> IO.inspect()"
+                 ])
+
+        assert app_controller_pid == "nil\n"
+
+        System.cmd(app_path, ["stop"])
+        :timer.sleep(1000)
+      end
     end
   end
 end

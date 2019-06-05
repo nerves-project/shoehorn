@@ -60,6 +60,16 @@ defmodule Shoehorn.TestCase do
     try do
       File.cd!(dest, function)
     after
+      cwd = File.cwd!()
+
+      cwd
+      |> Path.join("deps")
+      |> File.rm_rf()
+
+      cwd
+      |> Path.join("_build")
+      |> File.rm_rf()
+
       :code.set_path(get_path)
 
       for {mod, file} <- :code.all_loaded() -- previous,
