@@ -119,7 +119,7 @@ the `Shoehorn.Handler` behaviour. For example, the erlang `:ssh` application is 
 exiting when undergoing a brute force attack. Instead of the default production behaviour of
 forcing the node to restart, we can restart the application.
 
-```
+```elixir
 defmodule Example.RestartHandler do
   use Shoehorn.Handler
 
@@ -153,8 +153,3 @@ the list of default applications to include. If you depend on these applications
 at runtime, you can add `:distillery` to the `extra_applications` list and or
 `:mix` to the `included_applications` list in the `application/0` callback in
 your `mix.exs` file.
-
-## Thanks
-
-Big thanks to [Sonny Scroggin](https://github.com/scrogson) for coming up with
-the name Shoehorn <3
