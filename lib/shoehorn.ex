@@ -24,12 +24,10 @@ defmodule Shoehorn do
     bootfile = to_string(bootfile)
 
     if String.ends_with?(bootfile, "shoehorn") do
-      import Supervisor.Spec, warn: false
-
       opts = Application.get_all_env(:shoehorn)
 
       [
-        worker(Shoehorn.ApplicationController, [opts])
+        {Shoehorn.ApplicationController, opts}
       ]
     else
       []
