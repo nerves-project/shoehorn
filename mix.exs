@@ -49,7 +49,6 @@ defmodule Shoehorn.Mixfile do
 
   defp package do
     [
-      maintainers: ["Justin Schneck"],
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => "https://github.com/nerves-project/shoehorn"}
     ]
