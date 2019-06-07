@@ -19,11 +19,11 @@ defaults: &defaults
 version: 2
 
 jobs:
-  build_elixir_1_8_otp_21:
+  build_elixir_1_8_otp_22:
     docker:
-      - image: erlang:21.2.7
+      - image: erlang:22.0.2
         environment:
-          ELIXIR_VERSION: 1.8.1-otp-21
+          ELIXIR_VERSION: 1.8.2-otp-22
           LC_ALL: C.UTF-8
           SUDO: true
     <<: *defaults
@@ -35,6 +35,21 @@ jobs:
       - run: mix format --check-formatted
       - run: mix test
       - run: mix docs
+  build_elixir_1_8_otp_21:
+    docker:
+      - image: erlang:21.2.7
+        environment:
+          ELIXIR_VERSION: 1.8.2-otp-21
+          LC_ALL: C.UTF-8
+          SUDO: true
+    <<: *defaults
+    steps:
+      - checkout
+      - <<: *install_elixir
+      - <<: *install_hex_rebar
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix test
 
   build_elixir_1_7_otp_21:
     docker:
@@ -87,6 +102,8 @@ workflows:
   version: 2
   build_test:
     jobs:
+      - build_elixir_1_8_otp_22:
+          context: org-global
       - build_elixir_1_8_otp_21:
           context: org-global
       - build_elixir_1_7_otp_21:
