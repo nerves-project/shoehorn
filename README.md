@@ -38,7 +38,7 @@ mix release
 Go to the release directory and boot your app using `shoehorn`
 
 ```sh
-_build/dev/rel/simple_app/bin/simple_app console_boot shoehorn
+_build/dev/rel/simple_app/bin/simple_app console_boot $(pwd)/_build/dev/rel/simple_app/bin/shoehorn
 ```
 
 From here we can see that the shoehorn was started, but `simple_app` was not.
