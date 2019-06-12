@@ -107,7 +107,7 @@ defmodule Shoehorn.Handler do
   The default implementation returns the previous state, and a `:halt`
   reaction.
   """
-  @callback application_exited(cause, app :: atom, state :: any) :: {reaction, state :: any}
+  @callback application_exited(app :: atom, cause, state :: any) :: {reaction, state :: any}
 
   @doc """
   Callback for handling application starts
