@@ -134,12 +134,13 @@ defmodule Shoehorn do
 
       _ ->
         %Release{profile: %{output_dir: output_dir}, name: app} = app_release
-        relative_output_dir = Path.relative_to_cwd(output_dir)
+        absolute_output_dir = Path.relative_to_cwd(output_dir)
+                              |> Path.absname()
 
         Shell.info("""
         Generated Shoehorn Boot Script
             Run using shoehorn:
-              Interactive: #{relative_output_dir}/bin/#{app} console_boot #{relative_output_dir}/bin/shoehorn
+              Interactive: #{absolute_output_dir}/bin/#{app} console_boot #{absolute_output_dir}/bin/shoehorn
         """)
     end
 
