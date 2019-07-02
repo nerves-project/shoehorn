@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.0
+
+* Enhancements
+  * Added support for Elixir 1.9+ releases.
+  * Distillery is now an optional dependency and ~> 2.1.
+  * Updated supervisor specs and cleaned up warnings.
+
 ## v0.5.0
 
 * Enhancements
