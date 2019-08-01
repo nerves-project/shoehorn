@@ -73,14 +73,14 @@ and ensure we can receive new firmware updates. If `my_app` were to fail to star
 the node would still be in a state where it can receive new firmware over the network.
 
 You can also specify an `{m, f, a}` in the init list for performing
-simple initialization time tasks.
+simple initialization time tasks. Shoehorn will call [Kernel.apply/3](https://hexdocs.pm/elixir/Kernel.html#apply/3) for each `{m, f, a}` formatted entry.
 
 ```elixir
 # config/config.exs
 
 config :shoehorn,
   app: :my_app,
-  init: [{IO, :puts, "Init"}, :nerves_runtime]
+  init: [{IO, :puts, ["Init"]}, :nerves_runtime]
 ```
 
 ## Application Failures
@@ -153,3 +153,4 @@ the list of default applications to include. If you depend on these applications
 at runtime, you can add `:distillery` to the `extra_applications` list and or
 `:mix` to the `included_applications` list in the `application/0` callback in
 your `mix.exs` file.
+
