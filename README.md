@@ -66,7 +66,7 @@ config :shoehorn,
 
 Shoehorn will call `Application.ensure_all_started/2` on each app in the `init`
 list, followed by the main `app`. In the example above, the boot sequence would be
-`[:nerves_runtime, :nerves_init_gadget, :my_app]`. The `init` application list
+`[:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh, :my_app]`. The `init` application list
 should be used to prioritize OTP applications that need to be available to recover
 from error. In the example above, we initialize the runtime, bring up the network,
 and ensure we can receive new firmware updates. If `my_app` were to fail to start,
@@ -153,3 +153,4 @@ the list of default applications to include. If you depend on these applications
 at runtime, you can add `:distillery` to the `extra_applications` list and or
 `:mix` to the `included_applications` list in the `application/0` callback in
 your `mix.exs` file.
+
