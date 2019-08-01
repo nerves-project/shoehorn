@@ -72,7 +72,7 @@ from error. In the example above, we initialize the runtime, bring up the networ
 and ensure we can receive new firmware updates. If `my_app` were to fail to start,
 the node would still be in a state where it can receive new firmware over the network.
 
-You can also specify an `{m, f, a}` in the init list for performing
+You can also specify an `{m, f, [a]}` in the init list for performing
 simple initialization time tasks.
 
 ```elixir
@@ -80,7 +80,7 @@ simple initialization time tasks.
 
 config :shoehorn,
   app: :my_app,
-  init: [{IO, :puts, "Init"}, :nerves_runtime]
+  init: [{IO, :puts, ["Init"]}, :nerves_runtime]
 ```
 
 ## Application Failures
@@ -153,3 +153,4 @@ the list of default applications to include. If you depend on these applications
 at runtime, you can add `:distillery` to the `extra_applications` list and or
 `:mix` to the `included_applications` list in the `application/0` callback in
 your `mix.exs` file.
+
