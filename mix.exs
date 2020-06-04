@@ -1,4 +1,4 @@
-defmodule Shoehorn.Mixfile do
+defmodule Shoehorn.MixProject do
   use Mix.Project
 
   @version "0.6.0"
