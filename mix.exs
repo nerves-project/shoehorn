@@ -1,17 +1,19 @@
 defmodule Shoehorn.Mixfile do
   use Mix.Project
 
+  @version "0.6.0"
+  @source_url "https://github.com/nerves-project/shoehorn"
+
   def project do
     [
       app: :shoehorn,
-      version: "0.6.0",
+      version: @version,
       elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       description: description(),
       package: package(),
-      source_url: "https://github.com/nerves-project/shoehorn",
       deps: deps(),
       docs: docs()
     ]
@@ -50,7 +52,7 @@ defmodule Shoehorn.Mixfile do
   defp package do
     [
       licenses: ["Apache-2.0"],
-      links: %{"GitHub" => "https://github.com/nerves-project/shoehorn"}
+      links: %{"GitHub" => @source_url}
     ]
   end
 end
