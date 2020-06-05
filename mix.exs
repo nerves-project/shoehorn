@@ -45,9 +45,7 @@ defmodule Shoehorn.Mixfile do
   end
 
   defp description do
-    """
-    Get your boot on.
-    """
+    "Get your boot on."
   end
 
   defp package do
