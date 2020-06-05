@@ -15,7 +15,13 @@ defmodule Shoehorn.Mixfile do
       description: description(),
       package: package(),
       deps: deps(),
-      docs: docs()
+      docs: docs(),
+      preferred_cli_env: %{
+        docs: :docs,
+        "hex.publish": :docs,
+        "hex.build": :docs,
+        "coveralls.circle": :test
+      }
     ]
   end
 
@@ -30,7 +36,7 @@ defmodule Shoehorn.Mixfile do
     [
       {:distillery, "~> 2.1", optional: true, runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.18", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.22", only: :docs, runtime: false}
     ]
   end
 
