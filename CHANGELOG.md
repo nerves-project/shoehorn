@@ -47,7 +47,7 @@ use the module `Shoehorn.Handler.Ignore` to prevent the node from halting on fai
     handler: Shoehorn.Handler.Ignore
   ```
 
-Check out the [example application](https://github.com/nerves-project/shoehorn/tree/master/example) for information on implementing custom strategies.
+Check out the [example application](https://github.com/nerves-project/shoehorn/tree/main/example) for information on implementing custom strategies.
 
 ## v0.2.0
 

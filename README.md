@@ -66,9 +66,9 @@ config :shoehorn,
 
 Shoehorn will call `Application.ensure_all_started/2` on each app in the `init`
 list, followed by the main `app`. In the example above, the boot sequence would be
-`[:nerves_runtime, :nerves_init_gadget, :my_app]`. 
+`[:nerves_runtime, :nerves_init_gadget, :my_app]`.
 
-Use the `init` application list to prioritize OTP applications that are needed for 
+Use the `init` application list to prioritize OTP applications that are needed for
 error recovery. In the example above, we initialize the runtime, bring up the network,
 and ensure that we can receive new firmware updates. Now, if `my_app` fails to start,
 the node would still be in a state where it can receive new firmware over the network.
@@ -146,7 +146,7 @@ config :shoehorn,
   shutdown_timer: 50_000 # 50 Seconds
 ```
 
-Have a look at the [example application](https://github.com/nerves-project/shoehorn/tree/master/example) for more info on implementing custom strategies.
+Have a look at the [example application](https://github.com/nerves-project/shoehorn/tree/main/example) for more info on implementing custom strategies.
 
 ## Distillery overrides
 
