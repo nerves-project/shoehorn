@@ -17,9 +17,6 @@ defmodule Shoehorn.MixProject do
       deps: deps(),
       docs: docs(),
       preferred_cli_env: %{
-        docs: :docs,
-        "hex.publish": :docs,
-        "hex.build": :docs,
         "coveralls.circle": :test
       }
     ]

@@ -1,6 +1,8 @@
 defmodule Shoehorn.TestCase do
   use ExUnit.CaseTemplate
 
+  @compile {:no_warn_undefined, {Mix.ProjectStack, :clear_cache, 0}}
+
   using do
     quote do
       import unquote(__MODULE__)
@@ -18,7 +20,14 @@ defmodule Shoehorn.TestCase do
       Mix.env(:dev)
       Mix.Task.clear()
       Mix.Shell.Process.flush()
-      Mix.ProjectStack.clear_cache()
+
+      # < Elixir 1.10.0
+      if elixir_minor() < 10 do
+        Mix.ProjectStack.clear_cache()
+      else
+        Mix.State.clear_cache()
+      end
+
       Mix.ProjectStack.clear_stack()
       delete_tmp_paths()
 
@@ -113,6 +122,10 @@ defmodule Shoehorn.TestCase do
   defp delete_tmp_paths do
     tmp = String.to_charlist(tmp_path())
     for path <- :code.get_path(), :string.str(path, tmp) != 0, do: :code.del_path(path)
+  end
+
+  defp elixir_minor() do
+    System.version() |> Version.parse!() |> Map.get(:minor)
   end
 end
 
