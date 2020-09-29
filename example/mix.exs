@@ -5,7 +5,7 @@ defmodule Example.MixProject do
     [
       app: :example,
       version: "0.1.0",
-      elixir: "~> 1.6",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       releases: releases()
@@ -15,8 +15,7 @@ defmodule Example.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      mod: {Example, []},
-      extra_applications: [:distillery, :logger]
+      extra_applications: [:logger]
     ]
   end
 
@@ -33,8 +32,7 @@ defmodule Example.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:shoehorn, path: "../"},
-      {:distillery, "~> 2.1"},
+      {:shoehorn, path: "../"}
     ]
   end
 end

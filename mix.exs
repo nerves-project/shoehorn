@@ -8,7 +8,7 @@ defmodule Shoehorn.MixProject do
     [
       app: :shoehorn,
       version: @version,
-      elixir: "~> 1.6",
+      elixir: "~> 1.9",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -31,7 +31,6 @@ defmodule Shoehorn.MixProject do
 
   defp deps do
     [
-      {:distillery, "~> 2.1", optional: true, runtime: false},
       {:dialyxir, "~> 1.0.0", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.22", only: [:dev, :test], runtime: false}
     ]

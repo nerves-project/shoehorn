@@ -1,6 +1,18 @@
 defmodule Example do
-  def start(_, _) do
-    IO.puts("Example start")
-    {:ok, self()}
+  @moduledoc """
+  Documentation for `Example`.
+  """
+
+  @doc """
+  Hello world.
+
+  ## Examples
+
+      iex> Example.hello()
+      :world
+
+  """
+  def hello do
+    :world
   end
 end
