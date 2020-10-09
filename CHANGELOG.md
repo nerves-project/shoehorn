@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.0
+
+Shoehorn 0.7.0 removes support for creating boot scripts using Distillery and
+only supports using Elixir releases. As a result, the minimum supported version
+of Elixir is now version 1.9.
+
 ## v0.6.0
 
 * Enhancements
