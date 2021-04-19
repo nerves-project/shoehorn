@@ -78,12 +78,15 @@ defmodule Shoehorn.Handler do
 
   @doc """
   Callback to initialize the handle
+  
+  The callback will receive a keyword list of all the configuration
+  for shoehorn.
 
   The callback must return a tuple of `{:ok, state}`. Where state is
   the initial state of the handler. The system will halt if the
   return is anything other than `:ok`.
   """
-  @callback init(opts :: map) :: {:ok, state :: any}
+  @callback init(opts :: keyword) :: {:ok, state :: any}
 
   @doc """
   Callback for handling application crashes
