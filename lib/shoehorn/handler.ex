@@ -78,7 +78,7 @@ defmodule Shoehorn.Handler do
 
   @doc """
   Callback to initialize the handle
-  
+
   The callback will receive a keyword list of all the configuration
   for shoehorn.
 
