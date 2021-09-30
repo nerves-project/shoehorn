@@ -109,6 +109,14 @@ defmodule Shoehorn.Handler do
 
   The default implementation returns the previous state, and a `:halt`
   reaction.
+  
+  ## Callback Timeout
+  
+  This callback is limited in the amount of time is has to execute by 
+  a shutdown timer. If the callback does not return within the defined 
+  shutdown time, the node is instructed to halt. The default shutdown 
+  time is 30 seconds but this value can be changed in the application 
+  config.
   """
   @callback application_exited(app :: atom, cause, state :: any) :: {reaction, state :: any}
 
