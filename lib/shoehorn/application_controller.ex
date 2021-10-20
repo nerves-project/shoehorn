@@ -5,6 +5,10 @@ defmodule Shoehorn.ApplicationController do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  def status() do
+    GenServer.call(__MODULE__, :status, :infinity)
+  end
+
   def init(opts) do
     :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
 
@@ -37,6 +41,10 @@ defmodule Shoehorn.ApplicationController do
 
   def handle_info(_unknown, s) do
     {:noreply, s}
+  end
+
+  def handle_call(:status, _, s) do
+    {:reply, s.status, s}
   end
 
   defp start_app({m, f, a}) when is_list(a) do

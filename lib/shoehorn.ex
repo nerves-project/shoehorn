@@ -35,4 +35,8 @@ defmodule Shoehorn do
     defdelegate after_package(release, opts), to: Shoehorn.Plugin
     defdelegate after_cleanup(release, opts), to: Shoehorn.Plugin
   end
+
+  def all_applications_started? do
+    Shoehorn.ApplicationController.status() == :app
+  end
 end
