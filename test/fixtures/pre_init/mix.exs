@@ -1,11 +1,11 @@
-defmodule PreInit.Mixfile do
+defmodule PreInit.MixProject do
   use Mix.Project
 
   def project do
     [
       app: :pre_init,
       version: "0.1.0",
-      elixir: "~> 1.4",
+      elixir: "~> 1.9",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -14,7 +14,7 @@ defmodule PreInit.Mixfile do
   end
 
   def application do
-    [extra_applications: [:distillery, :logger]]
+    [extra_applications: [:logger]]
   end
 
   def releases do
@@ -30,8 +30,7 @@ defmodule PreInit.Mixfile do
 
   defp deps do
     [
-      {:shoehorn, path: "../../../"},
-      {:distillery, "~> 2.1"}
+      {:shoehorn, path: "../../../"}
     ]
   end
 end

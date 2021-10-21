@@ -14,28 +14,52 @@ the full application lifecycle through the exposure of new system phases.
 This level of control is important when the Erlang VM is fully responsible
 for the entire runtime, including its own updates. In these situations, if
 the VM were to fail to start it would never be able to recover from a bad
-update. This is especially useful when running [Nerves](https://circleci.com/gh/nerves-project).
+update. This is especially useful when running [Nerves](https://nerves-project.org).
 
 Here's how it works.
 
-Include `shoehorn` into your application release plugins:
+Run `mix release.init` on your project and then add `shoehorn` to your `mix
+releases` configuration in the `mix.exs` (replace `:my_app`):
 
 ```elixir
-# rel/config.exs
+  def project do
+    [
+      ...
+      releases: releases()
+    ]
+  end
 
-release :simple_app do
-  set version: current_version(:simple_app)
-  plugin Shoehorn
+  def releases do
+    [
+      my_app: [
+        steps: [&Shoehorn.Release.init/1, :assemble]
+      ]
+    ]
+  end
+
+  defp deps do
+    [
+      {:shoehorn, "~> 0.7.0"}
+    ]
+  end
 end
 ```
 
-Then, produce a release:
+Then add a minimal `shoehorn` configuration to your `config.exs` (replace
+`:my_app`):
+
+```elixir
+config :shoehorn
+  app: :my_app
+```
+
+Create a release:
 
 ```sh
 mix release
 ```
 
-Next, go to the release directory and boot your app using `shoehorn`:
+Next, run your app using `shoehorn`:
 
 ```sh
 _build/dev/rel/simple_app/bin/simple_app console_boot $(pwd)/_build/dev/rel/simple_app/bin/shoehorn
@@ -61,12 +85,12 @@ minimal configuration:
 
 config :shoehorn,
   app: :my_app,
-  init: [:nerves_runtime, :nerves_init_gadget, :nerves_firmware_ssh]
+  init: [:nerves_runtime, :nerves_pack]
 ```
 
 Shoehorn will call `Application.ensure_all_started/2` on each app in the `init`
 list, followed by the main `app`. In the example above, the boot sequence would be
-`[:nerves_runtime, :nerves_init_gadget, :my_app]`.
+`[:nerves_runtime, :nerves_pack, :my_app]`.
 
 Use the `init` application list to prioritize OTP applications that are needed for
 error recovery. In the example above, we initialize the runtime, bring up the network,
@@ -147,12 +171,3 @@ config :shoehorn,
 ```
 
 Have a look at the [example application](https://github.com/nerves-project/shoehorn/tree/main/example) for more info on implementing custom strategies.
-
-## Distillery overrides
-
-Shoehorn will alter the release defaults to omit `:mix` and `:distillery` from
-the list of default applications to include. If you depend on these applications
-at runtime, you can add `:distillery` to the `extra_applications` list and or
-`:mix` to the `included_applications` list in the `application/0` callback in
-your `mix.exs` file.
-
