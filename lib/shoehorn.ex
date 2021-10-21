@@ -26,13 +26,4 @@ defmodule Shoehorn do
   end
 
   def boot(_), do: []
-
-  # If distillery is present, load the plugin code
-  if Code.ensure_loaded?(Distillery.Releases.Plugin) do
-    defdelegate before_assembly(release, opts), to: Shoehorn.Plugin
-    defdelegate after_assembly(release, opts), to: Shoehorn.Plugin
-    defdelegate before_package(release, opts), to: Shoehorn.Plugin
-    defdelegate after_package(release, opts), to: Shoehorn.Plugin
-    defdelegate after_cleanup(release, opts), to: Shoehorn.Plugin
-  end
 end
