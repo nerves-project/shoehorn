@@ -45,10 +45,7 @@ defmodule ShoehornTest do
 
         app_path = Path.join([@simple_app_path, "_build/prod/rel/simple_app/bin/simple_app"])
 
-        {:ok, _task} =
-          Task.start(fn ->
-            System.cmd(app_path, ["start"]) |> IO.inspect()
-          end)
+        {:ok, _task} = Task.start(fn -> {"", 0} = System.cmd(app_path, ["start"]) end)
 
         :timer.sleep(2000)
         assert {"hello\n", 0} = System.cmd(app_path, ["rpc", "IO.puts(:hello)"])
