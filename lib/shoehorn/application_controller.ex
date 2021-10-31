@@ -1,10 +1,12 @@
 defmodule Shoehorn.ApplicationController do
   use GenServer
 
+  @spec start_link(keyword()) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @impl GenServer
   def init(opts) do
     :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
 
@@ -24,6 +26,7 @@ defmodule Shoehorn.ApplicationController do
   end
 
   # Shoehorn Application Init Phase
+  @impl GenServer
   def handle_info(:init, s) do
     Enum.each(s.init, &start_app/1)
     send(self(), :app)

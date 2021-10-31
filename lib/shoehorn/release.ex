@@ -1,4 +1,6 @@
 defmodule Shoehorn.Release do
+  @moduledoc false
+
   alias Shoehorn.Utils
 
   def init(%{boot_scripts: boot_scripts, applications: applications} = release) do

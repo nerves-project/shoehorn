@@ -1,4 +1,6 @@
 defmodule Shoehorn.Utils do
+  @moduledoc false
+
   def shoehorn_applications() do
     [
       :shoehorn,
