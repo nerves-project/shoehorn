@@ -14,7 +14,7 @@ defmodule Shoehorn.Handler do
 
   The `init` callback sets up any state the handler needs.
 
-  Ther `application_started` callback is called when an application
+  The `application_started` callback is called when an application
   starts up.
 
   The `application_exited` callback processes the incoming failure and
@@ -42,7 +42,7 @@ defmodule Shoehorn.Handler do
               {:continue, %{state | restart_counts: restart_counts + 1}}
             end
 
-            def applicaton_exited(_, state) do
+            def application_exited(_, state) do
               {:halt, state}
             end
           end
@@ -92,7 +92,7 @@ defmodule Shoehorn.Handler do
   Callback for handling application crashes
 
   Called with the application name, cause, and the handler's
-  state. It must return a tuple contaning the `reaction` that the
+  state. It must return a tuple containing the `reaction` that the
   `Shoehorn.ApplicationController` should take, and the new state
   of the handler.
 
@@ -112,10 +112,10 @@ defmodule Shoehorn.Handler do
 
   ## Callback Timeout
 
-  This callback is limited in the amount of time is has to execute by 
-  a shutdown timer. If the callback does not return within the defined 
-  shutdown time, the node is instructed to halt. The default shutdown 
-  time is 30 seconds but this value can be changed in the application 
+  This callback is limited in the amount of time it has to execute by
+  a shutdown timer. If the callback does not return within the defined
+  shutdown time, the node is instructed to halt. The default shutdown
+  time is 30 seconds but this value can be changed in the application
   config.
   """
   @callback application_exited(app :: atom, cause, state :: any) :: {reaction, state :: any}
