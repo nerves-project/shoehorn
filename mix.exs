@@ -17,7 +17,10 @@ defmodule Shoehorn.MixProject do
       deps: deps(),
       docs: docs(),
       preferred_cli_env: %{
-        "coveralls.circle": :test
+        "coveralls.circle": :test,
+        docs: :docs,
+        "hex.publish": :docs,
+        "hex.build": :docs
       }
     ]
   end
@@ -32,7 +35,7 @@ defmodule Shoehorn.MixProject do
   defp deps do
     [
       {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.22", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.22", only: :docs, runtime: false}
     ]
   end
 
