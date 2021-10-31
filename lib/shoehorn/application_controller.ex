@@ -121,7 +121,7 @@ defmodule Shoehorn.ApplicationController do
       application_spec
     rescue
       _ ->
-        Application.load(app)
+        _ = Application.load(app)
         Application.spec(app)
     end
   end

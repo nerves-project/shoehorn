@@ -16,6 +16,7 @@ defmodule Shoehorn.MixProject do
       package: package(),
       deps: deps(),
       docs: docs(),
+      dialyzer: dialyzer(),
       preferred_cli_env: %{
         "coveralls.circle": :test,
         docs: :docs,
@@ -57,6 +58,12 @@ defmodule Shoehorn.MixProject do
     [
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url}
+    ]
+  end
+
+  defp dialyzer() do
+    [
+      flags: [:race_conditions, :unmatched_returns, :error_handling, :underspecs]
     ]
   end
 end

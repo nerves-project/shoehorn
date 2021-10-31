@@ -58,7 +58,7 @@ defmodule Shoehorn.Handler.Proxy do
       |> Handler.invoke(app, reason, s.handler)
       |> react(s)
 
-    :timer.cancel(shutdown_timer_ref)
+    _ = :timer.cancel(shutdown_timer_ref)
     return
   end
 

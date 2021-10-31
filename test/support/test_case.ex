@@ -16,7 +16,7 @@ defmodule Shoehorn.TestCase do
     end
 
     on_exit(fn ->
-      Application.start(:logger)
+      _ = Application.start(:logger)
       Mix.env(:dev)
       Mix.Task.clear()
       Mix.Shell.Process.flush()
@@ -29,13 +29,13 @@ defmodule Shoehorn.TestCase do
       end
 
       Mix.ProjectStack.clear_stack()
-      delete_tmp_paths()
+      _ = delete_tmp_paths()
 
       if apps do
-        for app <- apps do
-          Application.stop(app)
+        Enum.each(apps, fn app ->
+          _ = Application.stop(app)
           Application.unload(app)
-        end
+        end)
 
         Logger.add_backend(:console, flush: true)
       end
@@ -71,15 +71,10 @@ defmodule Shoehorn.TestCase do
     after
       cwd = File.cwd!()
 
-      cwd
-      |> Path.join("deps")
-      |> File.rm_rf()
+      _ = File.rm_rf!(Path.join(cwd, "deps"))
+      _ = File.rm_rf!(Path.join(cwd, "_build"))
 
-      cwd
-      |> Path.join("_build")
-      |> File.rm_rf()
-
-      :code.set_path(get_path)
+      _ = :code.set_path(get_path)
 
       for {mod, file} <- :code.all_loaded() -- previous,
           file == :in_memory or (is_list(file) and :lists.prefix(flag, file)) do
@@ -107,9 +102,11 @@ defmodule Shoehorn.TestCase do
   def fixture_to_tmp(fixture, dest) do
     src = fixture_path(fixture)
 
-    File.rm_rf!(dest)
+    _ = File.rm_rf!(dest)
     File.mkdir_p!(dest)
-    File.cp_r!(src, dest)
+    _ = File.cp_r!(src, dest)
+
+    :ok
   end
 
   def purge(modules) do
