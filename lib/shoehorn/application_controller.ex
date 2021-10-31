@@ -54,7 +54,7 @@ defmodule Shoehorn.ApplicationController do
   defp start_app(init_call) do
     IO.puts("""
     Shoehorn encountered an error while trying to call #{inspect(init_call)}
-    during initialization. The argument needs to be formated as
+    during initialization. The argument needs to be formatted as
 
     {Module, :function, [args]}
     {Module, [args]}
