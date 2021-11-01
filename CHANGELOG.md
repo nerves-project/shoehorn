@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.0 - 2021-10-31
+
+Shoehorn v0.8.0 completely removes support for Distillery.
+
 ## v0.7.0
 
 Shoehorn 0.7.0 removes support for creating boot scripts using Distillery and
