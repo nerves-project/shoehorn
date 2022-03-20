@@ -23,6 +23,6 @@ defmodule Shoehorn.Release do
       name in Utils.shoehorn_applications()
     end)
     |> Enum.map(&elem(&1, 0))
-    |> Enum.map(&{&1, :none})
+    |> Enum.map(&{&1, :temporary})
   end
 end

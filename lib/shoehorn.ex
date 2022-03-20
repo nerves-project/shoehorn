@@ -8,23 +8,24 @@ defmodule Shoehorn do
   end
 
   defp children() do
-    :init.get_argument(:boot)
-    |> boot()
-  end
+    case :init.get_argument(:boot) do
+      {:ok, [[bootfile]]} ->
+        bootfile = to_string(bootfile)
 
-  defp boot({:ok, [[bootfile]]}) do
-    bootfile = to_string(bootfile)
+        if String.ends_with?(bootfile, "shoehorn") do
+          opts = Application.get_all_env(:shoehorn)
 
-    if String.ends_with?(bootfile, "shoehorn") do
-      opts = Application.get_all_env(:shoehorn)
+          :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
 
-      [
-        {Shoehorn.ApplicationController, opts}
-      ]
-    else
-      []
+          [
+            {Shoehorn.ApplicationController, opts}
+          ]
+        else
+          []
+        end
+
+      _ ->
+        []
     end
   end
-
-  defp boot(_), do: []
 end
