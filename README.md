@@ -46,14 +46,6 @@ releases` configuration in the `mix.exs` (replace `:my_app`):
 end
 ```
 
-Then add a minimal `shoehorn` configuration to your `config.exs` (replace
-`:my_app`):
-
-```elixir
-config :shoehorn
-  app: :my_app
-```
-
 Create a release:
 
 ```sh
@@ -85,13 +77,13 @@ minimal configuration:
 # config/config.exs
 
 config :shoehorn,
-  app: :my_app,
   init: [:nerves_runtime, :nerves_pack]
 ```
 
-Shoehorn will call `Application.ensure_all_started/2` on each app in the `init`
-list, followed by the main `app`. In the example above, the boot sequence would
-be `[:nerves_runtime, :nerves_pack, :my_app]`.
+Shoehorn will generate a release script that starts `:nerves_runtime` and its
+dependencies as soon as it can. Then it will start `:nerves_pack` and its
+dependencies. Then it will start the remainder of the applications in the
+project.
 
 Use the `init` application list to prioritize OTP applications that are needed
 for error recovery. In the example above, we initialize the runtime, bring up
@@ -103,15 +95,13 @@ new firmware over the network.
 # config/config.exs
 
 config :shoehorn,
-  app: :my_app,
   init: [:nerves_runtime]
 ```
 
 ## Application Failures
 
 The Erlang VM will respond to application failures differently, depending on the
-_permanence type_ specified when the application started. There are three
-permanence types:
+_mode_ specified when the application started. The modes are:
 
 * `:permanent` - if the application terminates, all other applications and the
   entire node are also terminated.
@@ -122,9 +112,9 @@ permanence types:
 * `:temporary` - if the application terminates, it is reported but no other
   applications are terminated (the default behaviour).
 
-Shoehorn will start all applications as `:temporary` and monitor application
-events by registering with the erlang kernel
-[error_logger](http://erlang.org/doc/man/error_logger.html).
+Unless overridden in the Mix release, Shoehorn starts all applications as
+`:temporary` and monitors application events by registering with the erlang
+kernel [error_logger](http://erlang.org/doc/man/error_logger.html).
 
 Application start and exit events will attempt to execute a callback to the
 configured `Shoehorn.Handler` module. By default, the module

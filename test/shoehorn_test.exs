@@ -92,14 +92,6 @@ defmodule ShoehornTest do
         :timer.sleep(1000)
         assert {"hello\n", 0} = System.cmd(app_path, ["rpc", "IO.puts(:hello)"])
 
-        assert {app_controller_pid, 0} =
-                 System.cmd(app_path, [
-                   "rpc",
-                   "Process.whereis(Shoehorn.ApplicationController) |> IO.inspect()"
-                 ])
-
-        assert app_controller_pid == "nil\n"
-
         System.cmd(app_path, ["stop"])
         :timer.sleep(1000)
       end
