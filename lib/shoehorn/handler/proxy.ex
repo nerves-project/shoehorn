@@ -6,6 +6,7 @@ defmodule Shoehorn.Handler.Proxy do
 
   alias Shoehorn.Handler
 
+  @impl :gen_event
   def init(opts) do
     shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
 
@@ -16,10 +17,12 @@ defmodule Shoehorn.Handler.Proxy do
      }}
   end
 
+  @impl :gen_event
   def handle_call(_, s) do
     {:ok, :ok, s}
   end
 
+  @impl :gen_event
   def handle_event({:info_report, _pid, {_, :std_info, info}}, s) when is_list(info) do
     case Keyword.get(info, :exited) do
       nil ->
@@ -46,6 +49,7 @@ defmodule Shoehorn.Handler.Proxy do
     {:ok, s}
   end
 
+  @impl :gen_event
   def terminate(_args, _s) do
     :ok
   end

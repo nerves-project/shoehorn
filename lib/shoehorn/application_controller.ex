@@ -8,8 +8,6 @@ defmodule Shoehorn.ApplicationController do
 
   @impl GenServer
   def init(opts) do
-    :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
-
     init = opts[:init] || []
 
     s = %{
@@ -25,13 +23,7 @@ defmodule Shoehorn.ApplicationController do
   @impl GenServer
   def handle_info(:init, s) do
     Enum.each(s.init, &start_app/1)
-    send(self(), :app)
     {:noreply, %{s | status: :app}}
-  end
-
-  def handle_info(:app, s) do
-    #start_app(s.app)
-    {:noreply, s}
   end
 
   def handle_info(_unknown, s) do
