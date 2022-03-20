@@ -16,7 +16,7 @@ defmodule Shoehorn.Release do
   ]
 
   @spec init(Mix.Release.t()) :: Mix.Release.t()
-  def init(release) do
+  def init(%Mix.Release{} = release) do
     init_apps = Application.get_env(:shoehorn, :init, [])
 
     all_apps = collect_all_applications(release)
@@ -40,7 +40,7 @@ defmodule Shoehorn.Release do
     init_apps
     |> Enum.reduce(MapSet.new(), fn app, acc ->
       if is_atom(app) do
-        release.applications[app].applications
+        release.applications[app][:applications]
         |> MapSet.new()
         |> MapSet.union(acc)
       else
