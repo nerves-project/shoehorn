@@ -8,8 +8,6 @@ defmodule Shoehorn.ApplicationController do
 
   @impl GenServer
   def init(opts) do
-    :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
-
     app = app(opts[:app])
 
     init = opts[:init] || []
