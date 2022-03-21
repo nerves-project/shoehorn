@@ -145,14 +145,17 @@ defmodule Shoehorn.Handler do
     quote do
       @behaviour Shoehorn.Handler
 
+      @impl Shoehorn.Handler
       def init(_opts) do
         {:ok, :no_state}
       end
 
+      @impl Shoehorn.Handler
       def application_started(_app, state) do
         {:continue, state}
       end
 
+      @impl Shoehorn.Handler
       def application_exited(_app, _reason, state) do
         {:halt, state}
       end

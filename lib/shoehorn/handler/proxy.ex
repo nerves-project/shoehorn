@@ -2,9 +2,10 @@ defmodule Shoehorn.Handler.Proxy do
   @moduledoc false
 
   @behaviour :gen_event
-  @shutdown_timer 30_000
 
   alias Shoehorn.Handler
+
+  @shutdown_timer 30_000
 
   @impl :gen_event
   def init(opts) do
