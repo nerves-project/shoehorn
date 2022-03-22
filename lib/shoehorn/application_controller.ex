@@ -40,16 +40,9 @@ defmodule Shoehorn.ApplicationController do
     {:noreply, s}
   end
 
-  defp start_app({m, f, a}) when is_list(a) do
-    apply(m, f, a)
-  end
-
-  defp start_app({m, a}) when is_list(a) do
-    apply(m, :start_link, a)
-  end
-
   defp start_app(app) when is_atom(app) do
-    Application.ensure_all_started(app)
+    _ = Application.ensure_all_started(app)
+    :ok
   end
 
   defp start_app(init_call) do
@@ -57,8 +50,6 @@ defmodule Shoehorn.ApplicationController do
     Shoehorn encountered an error while trying to call #{inspect(init_call)}
     during initialization. The argument needs to be formatted as
 
-    {Module, :function, [args]}
-    {Module, [args]}
     :application
     """)
 
