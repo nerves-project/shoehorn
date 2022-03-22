@@ -17,9 +17,8 @@ defmodule Shoehorn.Handler do
   The `application_started` callback is called when an application
   starts up.
 
-  The `application_exited` callback processes the incoming failure and
-  replies with the reaction that `Shoehorn` should take in case of
-  application failure.
+  The `application_exited` callback processes the incoming failure and replies
+  with the reaction that `Shoehorn` should take in case of application failure.
 
           defmodule Example.ShoehornHandler do
             use Shoehorn.Handler
@@ -49,8 +48,7 @@ defmodule Shoehorn.Handler do
 
   We initialize our `Shoehorn.Handler` with a restart count for state
   by calling `init` with the configuration options from our shoehorn
-  config. The stored state is passed in from the
-  `Shoehorn.ApplicationController`.
+  config.
 
   When we have an application startup, we will put a message on the
   console to notify the developer.
@@ -64,7 +62,7 @@ defmodule Shoehorn.Handler do
   """
 
   @typedoc """
-  The reaction letting `Shoehorn.ApplicationController` know what to do
+  The reaction letting `Shoehorn` know what to do
 
   * `:continue` - keep the system going like nothing happened
   * `:halt`    - stop the application and bring the system down
@@ -93,7 +91,7 @@ defmodule Shoehorn.Handler do
 
   Called with the application name, cause, and the handler's
   state. It must return a tuple containing the `reaction` that the
-  `Shoehorn.ApplicationController` should take, and the new state
+  `Shoehorn` should take, and the new state
   of the handler.
 
   The code that you execute here can be used to notify or capture some
@@ -123,10 +121,9 @@ defmodule Shoehorn.Handler do
   @doc """
   Callback for handling application starts
 
-  Called with the application name, and the handler's
-  state. It must return a tuple containing the `reaction` that the
-  `Shoehorn.ApplicationController` should take, and the new state
-  of the handler.
+  Called with the application name, and the handler's state. It must return a
+  tuple containing the `reaction` that the `Shoehorn` should take, and the new
+  state of the handler.
 
             def application_exited(:essential_app, _reason, state) do
               # repair actions to make before restarting

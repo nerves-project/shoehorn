@@ -161,7 +161,6 @@ defmodule Example.RestartHandler do
     Application.ensure_all_started(app)
     {:continue, state}
   end
-
 end
 ```
 

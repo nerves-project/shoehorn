@@ -18,13 +18,9 @@ defmodule Shoehorn.Application do
           opts = Application.get_all_env(:shoehorn)
 
           :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
-
-          [
-            {Shoehorn.ApplicationController, opts}
-          ]
-        else
-          []
         end
+
+        []
 
       _ ->
         []
