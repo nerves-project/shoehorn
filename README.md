@@ -99,17 +99,12 @@ the network, and ensure that we can receive new firmware updates. Now, if
 `my_app` fails to start, the node would still be in a state where it can receive
 new firmware over the network.
 
-You can also specify an `{m, f, a}` in the `init` list for performing simple
-initialization time tasks. Shoehorn will call
-[Kernel.apply/3](https://hexdocs.pm/elixir/Kernel.html#apply/3) for each `{m, f,
-a}`-formatted entry.
-
 ```elixir
 # config/config.exs
 
 config :shoehorn,
   app: :my_app,
-  init: [{IO, :puts, ["Init"]}, :nerves_runtime]
+  init: [:nerves_runtime]
 ```
 
 ## Application Failures
