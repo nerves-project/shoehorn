@@ -1,9 +1,9 @@
-defmodule Example.MixProject do
+defmodule MyProject.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :example,
+      app: :my_project,
       version: "0.1.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
@@ -15,13 +15,14 @@ defmodule Example.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {MyProject.Application, []}
     ]
   end
 
   def releases do
     [
-      example: [
+      my_project: [
         overwrite: true,
         quiet: true,
         steps: [&Shoehorn.Release.init/1, :assemble]
@@ -32,7 +33,9 @@ defmodule Example.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:shoehorn, path: "../"}
+      {:crash_app, path: "../crash_app"},
+      {:shoehorn, path: "../.."},
+      {:system_init, path: "../system_init"}
     ]
   end
 end
