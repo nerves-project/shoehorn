@@ -61,6 +61,8 @@ defmodule Shoehorn.Handler do
   system.
   """
 
+  require Logger
+
   @typedoc """
   The reaction letting `Shoehorn` know what to do
 
@@ -184,7 +186,7 @@ defmodule Shoehorn.Handler do
     {reaction, %{handler | state: new_state}}
   rescue
     e ->
-      IO.puts("Shoehorn handler raised an exception: #{inspect(e)}")
+      Logger.error("Shoehorn handler raised an exception: #{inspect(e)}")
       {:halt, state}
   end
 
@@ -198,7 +200,7 @@ defmodule Shoehorn.Handler do
     {reaction, %{handler | state: new_state}}
   rescue
     e ->
-      IO.puts("Shoehorn handler raised an exception: #{inspect(e)}")
+      Logger.error("Shoehorn handler raised an exception: #{inspect(e)}")
       {:continue, state}
   end
 end
