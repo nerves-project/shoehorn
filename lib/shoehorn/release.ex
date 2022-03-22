@@ -51,13 +51,7 @@ defmodule Shoehorn.Release do
   end
 
   defp sort_applications(apps, init_apps) do
-    Enum.sort(apps, &app1_before_wrap(&1, &2, init_apps))
-  end
-
-  defp app1_before_wrap(app1, app2, init_apps) do
-    result = app1_before(app1, app2, init_apps)
-    IO.puts("#{inspect(app1)} < #{inspect(app2)} ? #{result}")
-    result
+    Enum.sort(apps, &app1_before(&1, &2, init_apps))
   end
 
   defp app1_before({app1, _}, {app2, _}, init_apps) do
