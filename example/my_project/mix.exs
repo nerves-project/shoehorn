@@ -23,6 +23,7 @@ defmodule MyProject.MixProject do
     [
       {:crash_app, path: "../crash_app"},
       {:load_only_app, path: "../load_only_app", runtime: false},
+      {:pure_library, path: "../pure_library"},
       {:shoehorn, path: "../.."},
       {:system_init, path: "../system_init"}
     ]
