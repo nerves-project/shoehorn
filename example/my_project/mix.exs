@@ -12,11 +12,19 @@ defmodule MyProject.MixProject do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger],
       mod: {MyProject.Application, []}
+    ]
+  end
+
+  defp deps do
+    [
+      {:crash_app, path: "../crash_app"},
+      {:load_only_app, path: "../load_only_app", runtime: false},
+      {:shoehorn, path: "../.."},
+      {:system_init, path: "../system_init"}
     ]
   end
 
@@ -25,17 +33,13 @@ defmodule MyProject.MixProject do
       my_project: [
         overwrite: true,
         quiet: true,
-        steps: [&Shoehorn.Release.init/1, :assemble]
+        steps: [&Shoehorn.Release.init/1, :assemble],
+        applications: [
+          # Direct the release generator to load this app, but not start it.
+          # Shoehorn won't override this decision.
+          load_only_app: :load
+        ]
       ]
-    ]
-  end
-
-  # Run "mix help deps" to learn about dependencies.
-  defp deps do
-    [
-      {:crash_app, path: "../crash_app"},
-      {:shoehorn, path: "../.."},
-      {:system_init, path: "../system_init"}
     ]
   end
 end
