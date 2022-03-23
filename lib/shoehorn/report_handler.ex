@@ -73,6 +73,6 @@ defmodule Shoehorn.ReportHandler do
     |> react(s)
   end
 
-  def react({:halt, _}, _), do: :erlang.halt()
-  def react({:continue, handler}, state), do: %{state | handler: handler}
+  defp react({:halt, _}, _), do: :erlang.halt()
+  defp react({:continue, handler}, state), do: %{state | handler: handler}
 end
