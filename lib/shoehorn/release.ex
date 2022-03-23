@@ -50,16 +50,38 @@ defmodule Shoehorn.Release do
   # Compute the transitive closure of the init apps
   defp all_init_applications(release, init_apps) do
     init_apps
-    |> Enum.reduce(MapSet.new(), fn app, acc ->
-      if is_atom(app) do
-        release.applications[app][:applications]
-        |> MapSet.new()
-        |> MapSet.union(acc)
-      else
-        # skip non-apps
-        acc
-      end
-    end)
+    |> Enum.reduce(MapSet.new(), &add_init_app(&1, &2, release))
+  end
+
+  defp add_init_app(app, acc, release) when is_atom(app) do
+    release.applications[app][:applications]
+    |> MapSet.new()
+    |> MapSet.union(acc)
+  end
+
+  defp add_init_app({_, _, _} = mfa, _acc, _release) do
+    raise """
+    #{inspect(mfa)} is no longer supported in the Shoehorn `:init` option.
+
+    To fix, move this function call to an appropriate `Application.start/2`.
+    Depending on what this is supposed to do, other ways may be possible too.
+
+    Long story: While it looks like the `:init` list would be processed in
+    order with the function calls in between `Application.start/1` calls, there
+    really was no guarantee. Application dependencies and how applications are
+    sorted in dependency lists take precedence over the `:init` list order.
+    There's also a technical reason in that bare functions aren't allowed to be
+    listed in application start lists for creating the release. While the
+    latter could be fixed, not knowing when a function is called in relation to
+    other application starts leads to confusing issues and it seems best to
+    find another way when you want to do this.
+    """
+  end
+
+  defp add_init_app(other, _acc, _release) do
+    raise """
+    The Shoehorn `:init` option only supports atoms. #{inspect(other)}
+    """
   end
 
   defp app_compare({app1, _}, {app2, _}, init_apps) do
