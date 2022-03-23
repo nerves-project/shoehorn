@@ -5,25 +5,24 @@ defmodule Shoehorn.Application do
 
   @impl Application
   def start(_type, _args) do
+    if using_shoehorn?() do
+      opts = Application.get_all_env(:shoehorn)
+      :error_logger.add_report_handler(Shoehorn.ReportHandler, opts)
+    end
+
     opts = [strategy: :one_for_one, name: Shoehorn.Supervisor]
-    Supervisor.start_link(children(), opts)
+    Supervisor.start_link([], opts)
   end
 
-  defp children() do
+  defp using_shoehorn?() do
     case :init.get_argument(:boot) do
       {:ok, [[bootfile]]} ->
         bootfile = to_string(bootfile)
 
-        if String.ends_with?(bootfile, "shoehorn") do
-          opts = Application.get_all_env(:shoehorn)
-
-          :error_logger.add_report_handler(Shoehorn.ReportHandler, opts)
-        end
-
-        []
+        String.ends_with?(bootfile, "shoehorn")
 
       _ ->
-        []
+        false
     end
   end
 end
