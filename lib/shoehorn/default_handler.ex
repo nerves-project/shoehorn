@@ -1,4 +1,4 @@
-defmodule Shoehorn.Handler.Ignore do
+defmodule Shoehorn.DefaultHandler do
   @moduledoc """
   Default handler that ignores all events
   """

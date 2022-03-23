@@ -17,7 +17,7 @@ defmodule Shoehorn.Application do
         if String.ends_with?(bootfile, "shoehorn") do
           opts = Application.get_all_env(:shoehorn)
 
-          :error_logger.add_report_handler(Shoehorn.Handler.Proxy, opts)
+          :error_logger.add_report_handler(Shoehorn.ReportHandler, opts)
 
           [{Shoehorn.ApplicationController, opts}]
         else

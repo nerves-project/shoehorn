@@ -133,7 +133,7 @@ events by registering with the erlang kernel
 
 Application start and exit events will attempt to execute a callback to the
 configured `Shoehorn.Handler` module. By default, the module
-`Shoehorn.Handler.Ignore` will be called. This module is configured to continue
+`Shoehorn.DefaultHandler` will be called. This module is configured to continue
 the Erlang VM if any OTP application were to exit, for any reason. In
 production, you may want to customize the action on failure so you can gather
 forensics or perform updates to the node.  You can do this by overriding the

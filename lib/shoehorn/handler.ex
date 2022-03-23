@@ -150,7 +150,7 @@ defmodule Shoehorn.Handler do
 
   @spec init(opts) :: t | no_return
   def init(opts) do
-    module = opts[:handler] || Shoehorn.Handler.Ignore
+    module = opts[:handler] || Shoehorn.DefaultHandler
     {:ok, state} = module.init(opts)
     %__MODULE__{module: module, state: state}
   end

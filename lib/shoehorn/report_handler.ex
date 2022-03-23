@@ -1,4 +1,4 @@
-defmodule Shoehorn.Handler.Proxy do
+defmodule Shoehorn.ReportHandler do
   @moduledoc false
 
   @behaviour :gen_event
