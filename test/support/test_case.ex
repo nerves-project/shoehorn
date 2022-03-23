@@ -129,16 +129,19 @@ end
 
 defmodule ShoehornTest.Handler do
   @moduledoc false
-  use Shoehorn.Handler
+  @behaviour Shoehorn.Handler
 
+  @impl Shoehorn.Handler
   def init(_opts) do
     {:ok, nil}
   end
 
+  @impl Shoehorn.Handler
   def application_started(_app, state) do
     {:continue, state}
   end
 
+  @impl Shoehorn.Handler
   def application_exited(_app, _reason, state) do
     {:continue, state}
   end

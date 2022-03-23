@@ -1,5 +1,5 @@
 defmodule MyProject.RestartHandler do
-  use Shoehorn.Handler
+  @behaviour Shoehorn.Handler
 
   require Logger
 

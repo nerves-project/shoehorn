@@ -21,16 +21,19 @@ defmodule Shoehorn.Handler do
   with the reaction that `Shoehorn` should take in case of application failure.
 
           defmodule Example.ShoehornHandler do
-            use Shoehorn.Handler
+            @behaviour Shoehorn.Handler
 
+            @impl Shoehorn.Handler
             def init(_opts) do
               {:ok, %{restart_counts: 0}}
             end
 
+            @impl Shoehorn.Handler
             def application_started(app, state) do
               {:continue, state}
             end
 
+            @impl Shoehorn.Handler
             def application_exited(:non_essential_app, _reason,  state) do
               {:continue, state}
             end
@@ -140,29 +143,6 @@ defmodule Shoehorn.Handler do
   """
   @callback application_started(app :: atom, state :: any) :: {reaction, state :: any}
 
-  defmacro __using__(_opts) do
-    quote do
-      @behaviour Shoehorn.Handler
-
-      @impl Shoehorn.Handler
-      def init(_opts) do
-        {:ok, :no_state}
-      end
-
-      @impl Shoehorn.Handler
-      def application_started(_app, state) do
-        {:continue, state}
-      end
-
-      @impl Shoehorn.Handler
-      def application_exited(_app, _reason, state) do
-        {:halt, state}
-      end
-
-      defoverridable init: 1, application_started: 2, application_exited: 3
-    end
-  end
-
   @type t :: %__MODULE__{module: atom, state: any}
   @type opts :: [handler: atom]
 
@@ -170,7 +150,7 @@ defmodule Shoehorn.Handler do
 
   @spec init(opts) :: t | no_return
   def init(opts) do
-    module = opts[:handler] || Shoehorn.Handler.Ignore
+    module = opts[:handler] || Shoehorn.DefaultHandler
     {:ok, state} = module.init(opts)
     %__MODULE__{module: module, state: state}
   end
