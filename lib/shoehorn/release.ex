@@ -18,7 +18,16 @@ defmodule Shoehorn.Release do
   @spec init(Mix.Release.t()) :: Mix.Release.t()
   def init(%Mix.Release{} = release) do
     init_apps = Application.get_env(:shoehorn, :init, [])
-    all_init_apps = all_init_applications(release, init_apps)
+
+    sectioned_order =
+      release
+      |> init_app_dependencies_and_app(init_apps)
+      |> Enum.with_index()
+      |> Enum.flat_map(fn {applications, index} ->
+        Enum.map(applications, fn app -> {app, index} end)
+      end)
+      |> Enum.uniq_by(&elem(&1, 0))
+      |> Map.new()
 
     # Start with the start script since it applies the user overrides for the
     # start mode (the :applications option in the release).
@@ -26,7 +35,15 @@ defmodule Shoehorn.Release do
     apps =
       release.boot_scripts[:start]
       |> Enum.map(&update_start_mode/1)
-      |> Enum.sort(&app_compare(&1, &2, all_init_apps))
+      |> Enum.sort(fn
+        # IEx last
+        {:iex, _}, {_, _} ->
+          false
+
+        # Order by sectioned order tailed by the rest
+        {app_1, _}, {app_2, _} ->
+          Map.get(sectioned_order, app_1, :other) <= Map.get(sectioned_order, app_2, :other)
+      end)
 
     new_boot_scripts = Map.put(release.boot_scripts, :shoehorn, apps)
 
@@ -47,19 +64,19 @@ defmodule Shoehorn.Release do
     {app, new_mode}
   end
 
-  # Compute the transitive closure of the init apps
-  defp all_init_applications(release, init_apps) do
-    init_apps
-    |> Enum.reduce(MapSet.new(), &add_init_app(&1, &2, release))
+  defp init_app_dependencies_and_app(release, init_apps) do
+    Enum.flat_map(init_apps, fn
+      app when is_atom(app) ->
+        dependencies = release.applications |> Map.fetch!(app) |> Map.fetch!(:applications)
+        {permanent_deps, deps} = Enum.split_with(dependencies, &(&1 in @permanent_applications))
+        [permanent_deps, deps, [app]]
+
+      {_, _, _} = mfa ->
+        raise_mfa(mfa)
+    end)
   end
 
-  defp add_init_app(app, acc, release) when is_atom(app) do
-    release.applications[app][:applications]
-    |> MapSet.new()
-    |> MapSet.union(acc)
-  end
-
-  defp add_init_app({_, _, _} = mfa, _acc, _release) do
+  defp raise_mfa(mfa) do
     raise """
     #{inspect(mfa)} is no longer supported in the Shoehorn `:init` option.
 
@@ -76,43 +93,5 @@ defmodule Shoehorn.Release do
     other application starts leads to confusing issues and it seems best to
     find another way when you want to do this.
     """
-  end
-
-  defp add_init_app(other, _acc, _release) do
-    raise """
-    The Shoehorn `:init` option only supports atoms. #{inspect(other)}
-    """
-  end
-
-  defp app_compare({app1, _}, {app2, _}, init_apps) do
-    app1_is_shoehorn? = app1 in @permanent_applications
-    app2_is_shoehorn? = app2 in @permanent_applications
-
-    cond do
-      app1 == :iex ->
-        false
-
-      app2 == :iex ->
-        true
-
-      app1_is_shoehorn? and app2_is_shoehorn? ->
-        app1 < app2
-
-      app1_is_shoehorn? ->
-        true
-
-      app2_is_shoehorn? ->
-        false
-
-      true ->
-        app1_is_init? = MapSet.member?(init_apps, app1)
-        app2_is_init? = MapSet.member?(init_apps, app2)
-
-        cond do
-          app1_is_init? == app2_is_init? -> app1 < app2
-          app1_is_init? -> true
-          true -> false
-        end
-    end
   end
 end
