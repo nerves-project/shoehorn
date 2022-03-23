@@ -18,21 +18,33 @@ defmodule Shoehorn.Release do
   @spec init(Mix.Release.t()) :: Mix.Release.t()
   def init(%Mix.Release{} = release) do
     init_apps = Application.get_env(:shoehorn, :init, [])
-
-    all_apps = collect_all_applications(release)
     all_init_apps = all_init_applications(release, init_apps)
-    sorted_apps = sort_applications(all_apps, all_init_apps)
 
-    new_boot_scripts = Map.put(release.boot_scripts, :shoehorn, sorted_apps)
+    # Start with the start script since it applies the user overrides for the
+    # start mode (the :applications option in the release).
+
+    apps =
+      release.boot_scripts[:start]
+      |> Enum.map(&update_start_mode/1)
+      |> Enum.sort(&app_compare(&1, &2, all_init_apps))
+
+    new_boot_scripts = Map.put(release.boot_scripts, :shoehorn, apps)
 
     %{release | boot_scripts: new_boot_scripts}
   end
 
-  defp collect_all_applications(release) do
-    Enum.map(release.applications, fn {name, _properties} ->
-      mode = if name in @permanent_applications, do: :permanent, else: :temporary
-      {name, mode}
-    end)
+  defp update_start_mode({app, mode}) do
+    new_mode =
+      case mode do
+        :permanent ->
+          # Should non-application libraries be started as permanent?
+          if app in @permanent_applications, do: :permanent, else: :temporary
+
+        other_mode ->
+          other_mode
+      end
+
+    {app, new_mode}
   end
 
   # Compute the transitive closure of the init apps
@@ -50,11 +62,7 @@ defmodule Shoehorn.Release do
     end)
   end
 
-  defp sort_applications(apps, init_apps) do
-    Enum.sort(apps, &app1_before(&1, &2, init_apps))
-  end
-
-  defp app1_before({app1, _}, {app2, _}, init_apps) do
+  defp app_compare({app1, _}, {app2, _}, init_apps) do
     app1_is_shoehorn? = app1 in @permanent_applications
     app2_is_shoehorn? = app2 in @permanent_applications
 
