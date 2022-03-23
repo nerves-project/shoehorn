@@ -1,6 +1,11 @@
 # Example
 
-## Build using Elixir Releases (Elixir >= 1.9.0)
+This directory contains a set of Elixir projects to demonstrate Shoehorn. The
+`my_project` directory contains the main project. It depends on the other
+projects which do things like crash on start or print out a message when started
+or do nothing like you'd expect from a library.
+
+## Building and running
 
 ```bash
 cd my_project
@@ -11,8 +16,9 @@ RELEASE_BOOT_SCRIPT=shoehorn _build/dev/rel/my_project/bin/my_project start_iex
 
 Take a look at `_build/dev/rel/my_project/releases/0.1.0/shoehorn.script` for
 how Shoehorn starts it up. The calls to `:application.start_boot/2` at the end
-are useful. Anything marked `:temporary` will be handled by Shoehorn.
-Applications marked `:permanent` will exit the Erlang VM if they crash.
+are useful. Many applications will be marked as `:temporary` and those are the
+ones that you can now handle in your code with `Shoehorn.Handler`
+implementations.
 
 ## Handling application stops
 
