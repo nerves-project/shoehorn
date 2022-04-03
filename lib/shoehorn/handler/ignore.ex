@@ -2,7 +2,7 @@ defmodule Shoehorn.Handler.Ignore do
   @moduledoc """
   Default handler that ignores all events
   """
-  use Shoehorn.Handler
+  @behaviour Shoehorn.Handler
 
   @impl Shoehorn.Handler
   def init(_opts) do

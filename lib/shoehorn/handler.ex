@@ -21,7 +21,7 @@ defmodule Shoehorn.Handler do
   with the reaction that `Shoehorn` should take in case of application failure.
 
           defmodule Example.ShoehornHandler do
-            use Shoehorn.Handler
+            @behaviour Shoehorn.Handler
 
             @impl Shoehorn.Handler
             def init(_opts) do
@@ -142,26 +142,6 @@ defmodule Shoehorn.Handler do
   reaction.
   """
   @callback application_started(app :: atom, state :: any) :: {reaction, state :: any}
-
-  defmacro __using__(_opts) do
-    quote do
-      @behaviour Shoehorn.Handler
-
-      def init(_opts) do
-        {:ok, :no_state}
-      end
-
-      def application_started(_app, state) do
-        {:continue, state}
-      end
-
-      def application_exited(_app, _reason, state) do
-        {:halt, state}
-      end
-
-      defoverridable init: 1, application_started: 2, application_exited: 3
-    end
-  end
 
   @type t :: %__MODULE__{module: atom, state: any}
   @type opts :: [handler: atom]

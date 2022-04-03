@@ -129,7 +129,7 @@ end
 
 defmodule ShoehornTest.Handler do
   @moduledoc false
-  use Shoehorn.Handler
+  @behaviour Shoehorn.Handler
 
   @impl Shoehorn.Handler
   def init(_opts) do
