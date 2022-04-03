@@ -23,14 +23,17 @@ defmodule Shoehorn.Handler do
           defmodule Example.ShoehornHandler do
             use Shoehorn.Handler
 
+            @impl Shoehorn.Handler
             def init(_opts) do
               {:ok, %{restart_counts: 0}}
             end
 
+            @impl Shoehorn.Handler
             def application_started(app, state) do
               {:continue, state}
             end
 
+            @impl Shoehorn.Handler
             def application_exited(:non_essential_app, _reason,  state) do
               {:continue, state}
             end
