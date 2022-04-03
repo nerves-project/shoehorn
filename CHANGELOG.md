@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.9.0 - 2022-04-03
+
+This is a major update to Shoehorn that includes **breaking changes**:
+
+* The `:init` configuration option only supports applications now. MFAs are no
+  longer supported and moved to `runtime.exs` or an `Application.start`
+  callback.
+* References to `use Shoehorn.Handler` need to be updated to `@behaviour
+  Shoehorn.Handler`. This may require implementing additional functions.
+* Elixir 1.9 is no longer supported. Please update to Elixir 1.10 or later.
+
+The main update to Shoehorn is to move all application startup to the boot
+script. This noticeably improves boot time on many Nerves platforms due to boot
+scripts being able to load files without traversing the entire Erlang module
+path list. These traversals are amazingly slow (sometimes seconds) due to a
+combination of SquashFS slowness in this area and slow overall IO.
+
+Using boot scripts to load all applications has some important improvements in
+addition to performance:
+
+* Application start order is deterministic and computed at compile-time. If you
+  want to see the order, take a look at the end of the `shoehorn.script` in your
+  release directory.
+* Shoehorn alphabetizes the start of applications that could be ordered
+  arbitrarily. This minimizes changes in start ordering when dependencies are
+  added or removed.
+* It enables experimental features like providing additional dependencies (using
+  the `:extra_dependencies` configuration key) or hinting that dependencies get
+  started as late as possible (the `:last` configuration key)
+* You can remove the `:app` configuration key from your Shoehorn configuration.
+  It's no longer needed.
+
+Aside from the change from a macro to a behaviour and possibly needing to
+implement callback functions, `Shoehorn.Handler` implementations work the same
+as before.
+
 ## v0.8.0 - 2021-10-31
 
 Shoehorn v0.8.0 completely removes support for Distillery.
