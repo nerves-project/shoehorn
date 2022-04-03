@@ -1,3 +1,3 @@
-use Mix.Config
+import Config
 
 config :shoehorn, app: :simple_app
