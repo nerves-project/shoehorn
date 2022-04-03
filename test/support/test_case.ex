@@ -1,4 +1,5 @@
 defmodule Shoehorn.TestCase do
+  @moduledoc false
   use ExUnit.CaseTemplate
 
   @compile {:no_warn_undefined, {Mix.ProjectStack, :clear_cache, 0}}
@@ -127,6 +128,7 @@ defmodule Shoehorn.TestCase do
 end
 
 defmodule ShoehornTest.Handler do
+  @moduledoc false
   use Shoehorn.Handler
 
   def init(_opts) do

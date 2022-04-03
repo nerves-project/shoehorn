@@ -1,4 +1,5 @@
 defmodule FailInit do
+  @moduledoc false
   require Logger
 
   def start(_, _) do
