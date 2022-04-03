@@ -154,7 +154,15 @@ the application.
 
 ```elixir
 defmodule Example.RestartHandler do
-  use Shoehorn.Handler
+  @behavior Shoehorn.Handler
+
+  def init(_opts) do
+    {:ok, nil}
+  end
+
+  def application_started(_app, state) do
+    {:continue, state}
+  end
 
   def application_exited(app, _reason, state) do
     Logger.error("Application stopped: #{inspect(app)} #{inspect(state)}")
