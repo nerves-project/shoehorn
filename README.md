@@ -157,11 +157,10 @@ defmodule Example.RestartHandler do
   use Shoehorn.Handler
 
   def application_exited(app, _reason, state) do
-    IO.puts("Application stopped: #{inspect(app)} #{inspect(state)}")
+    Logger.error("Application stopped: #{inspect(app)} #{inspect(state)}")
     Application.ensure_all_started(app)
     {:continue, state}
   end
-
 end
 ```
 

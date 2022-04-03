@@ -27,7 +27,7 @@ defmodule Shoehorn.MixProject do
   end
 
   def application do
-    [extra_applications: [:crypto], mod: {Shoehorn, []}]
+    [extra_applications: [:crypto, :logger], mod: {Shoehorn, []}]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
