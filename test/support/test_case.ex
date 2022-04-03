@@ -21,13 +21,7 @@ defmodule Shoehorn.TestCase do
       Mix.env(:dev)
       Mix.Task.clear()
       Mix.Shell.Process.flush()
-
-      # < Elixir 1.10.0
-      if elixir_minor() < 10 do
-        Mix.ProjectStack.clear_cache()
-      else
-        Mix.State.clear_cache()
-      end
+      Mix.State.clear_cache()
 
       Mix.ProjectStack.clear_stack()
       _ = delete_tmp_paths()
@@ -120,10 +114,6 @@ defmodule Shoehorn.TestCase do
   defp delete_tmp_paths do
     tmp = String.to_charlist(tmp_path())
     for path <- :code.get_path(), :string.str(path, tmp) != 0, do: :code.del_path(path)
-  end
-
-  defp elixir_minor() do
-    System.version() |> Version.parse!() |> Map.get(:minor)
   end
 end
 
