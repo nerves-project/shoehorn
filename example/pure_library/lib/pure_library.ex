@@ -1,6 +1,6 @@
-defmodule Example do
+defmodule PureLibrary do
   @moduledoc """
-  Documentation for `Example`.
+  This is a library and not an OTP application.
   """
 
   @doc """
@@ -8,7 +8,7 @@ defmodule Example do
 
   ## Examples
 
-      iex> Example.hello()
+      iex> PureLibrary.hello()
       :world
 
   """

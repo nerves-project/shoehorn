@@ -1,14 +1,13 @@
-defmodule Example.MixProject do
+defmodule PureLibrary.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :example,
+      app: :pure_library,
       version: "0.1.0",
-      elixir: "~> 1.9",
+      elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      releases: releases()
+      deps: deps()
     ]
   end
 
@@ -19,20 +18,11 @@ defmodule Example.MixProject do
     ]
   end
 
-  def releases do
-    [
-      example: [
-        overwrite: true,
-        quiet: true,
-        steps: [&Shoehorn.Release.init/1, :assemble]
-      ]
-    ]
-  end
-
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:shoehorn, path: "../"}
+      # {:dep_from_hexpm, "~> 0.3.0"},
+      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 end
