@@ -3,21 +3,29 @@
 [![CircleCI](https://circleci.com/gh/nerves-project/shoehorn.svg?style=svg)](https://circleci.com/gh/nerves-project/shoehorn)
 [![Hex version](https://img.shields.io/hexpm/v/shoehorn.svg "Hex version")](https://hex.pm/packages/shoehorn)
 
-Shoehorn provides full control over the application lifecycle in Elixir.
+Shoehorn helps you handle OTP application failures
+
+## Motivation
+
+By default, the Erlang VM exits when OTP applications unexpectedly stop. This
+can happen if an application's `Application.start/2` callback crashes or if a
+`GenServer` crashes repeatedly and takes down the application's supervision
+tree. Either way, recovery needs to happen outside of the Erlang VM.
+
+Shoehorn provides a way of handling this inside the Erlang VM to allow you to
+debug, restart an application, switch to a recovery mode, or something else of
+your choosing. It does this by creating a custom release start script
+(`shoehorn.boot`) and exposing the `Shoehorn.Handler` behaviour for your code to
+decide what to do. The custom release start script turns off the default OTP
+application mode that exits the VM on unexpected errors and orders application
+starts to make sure that the handler is available.
+
+Shoehorn has another benefit of letting you influence the OTP application start
+order. Dependencies still determine the overall ordering, but it's possible to
+sort applications earlier via Shoehorn's `:init` option. This can let you
+improve the apparent release startup time on slow platforms.
 
 ## Usage
-
-`Shoehorn` acts as a shim to the initialization sequence for your application's
-VM. Using `Shoehorn`, you can ensure that the VM will always pass
-initialization.  This provides the running node the ability of using Elixir /
-Erlang to control the full application lifecycle through the exposure of new
-system phases.  This level of control is important when the Erlang VM is fully
-responsible for the entire runtime, including its own updates. In these
-situations, if the VM were to fail to start it would never be able to recover
-from a bad update. This is especially useful when running
-[Nerves](https://nerves-project.org).
-
-Here's how it works.
 
 Run `mix release.init` on your project and then add `shoehorn` to your `mix
 releases` configuration in the `mix.exs` (replace `:my_app`):
