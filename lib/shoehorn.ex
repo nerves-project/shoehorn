@@ -1,3 +1,5 @@
 defmodule Shoehorn do
-  @moduledoc false
+  @moduledoc """
+  Shoehorn lets you recover from OTP application failures
+  """
 end
