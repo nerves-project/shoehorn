@@ -28,7 +28,7 @@ improve the apparent release startup time on slow platforms.
 ## Usage
 
 Run `mix release.init` on your project and then add `shoehorn` to your `mix
-releases` configuration in the `mix.exs` (replace `:my_app`):
+releases` configuration in the `mix.exs` (replace `:simple_app`):
 
 ```elixir
   def project do
@@ -40,7 +40,7 @@ releases` configuration in the `mix.exs` (replace `:my_app`):
 
   def releases do
     [
-      my_app: [
+      simple_app: [
         steps: [&Shoehorn.Release.init/1, :assemble]
       ]
     ]
@@ -60,26 +60,41 @@ Create a release:
 mix release
 ```
 
-Next, run your app using `shoehorn`:
+Next, take a look at the start script so that you can see how your application
+will now be started and how it compares to the default `startup.script`. Open
+`_build/dev/rel/simple_app/releases/0.1.0/shoehorn.script` and go to the end.
+You should see something like the following:
+
+```erlang
+     {progress,applications_loaded},
+     {apply,{application,start_boot,[kernel,permanent]}},
+     {apply,{application,start_boot,[stdlib,permanent]}},
+     {apply,{application,start_boot,[compiler,permanent]}},
+     {apply,{application,start_boot,[elixir,permanent]}},
+     {apply,{application,start_boot,[logger,permanent]}},
+     {apply,{application,start_boot,[crypto,permanent]}},
+     {apply,{application,start_boot,[shoehorn,permanent]}},
+     {apply,{application,start_boot,[sasl,permanent]}},
+     {apply,{application,start_boot,[simple_app,temporary]}},
+     {progress,started}
+```
+
+This shows the order that applications will be started and their mode.
+Applications marked `permanent` will exit the VM if they stop expectantly.
+Shoehorn will change as much as it can to `temporary` so that it (and by
+extension, you) can control what happens.
+
+To start your release using the `shoehorn` boot script, run:
 
 ```sh
-_build/dev/rel/simple_app/bin/simple_app console_boot $(pwd)/_build/dev/rel/simple_app/bin/shoehorn
+RELEASE_BOOT_SCRIPT=shoehorn _build/dev/rel/simple_app/bin/simple_app start_iex
 ```
 
-From here we can see that shoehorn was started, but `simple_app` was not.
-
-```elixir
-iex(simple_app@127.0.0.1)1> Application.started_applications
-[{:iex, 'iex', '1.4.0'}, {:shoehorn, 'shoehorn', '0.1.0'},
- {:elixir, 'elixir', '1.4.0'}, {:compiler, 'ERTS  CXC 138 10', '7.0.3'},
- {:stdlib, 'ERTS  CXC 138 10', '3.2'}, {:kernel, 'ERTS  CXC 138 10', '5.1.1'}]
-```
-
-Booting the shoehorn.boot script with zero application config will bring up the
-Erlang VM and only run the `shoehorn` app.
+It should work as expected with the possible exception that the Erlang VM won't
+exit for any of the OTP applications marked `temporary`.
 
 Now let's configure `shoehorn` to do something more interesting by adding some
-minimal configuration:
+minimal configuration. This is hypothetical unless you're using Nerves:
 
 ```elixir
 # config/config.exs
@@ -91,22 +106,16 @@ config :shoehorn,
 Shoehorn will generate a release script that starts `:nerves_runtime` and its
 dependencies as soon as it can. Then it will start `:nerves_pack` and its
 dependencies. Then it will start the remainder of the applications in the
-project.
+project. Inspect the `shoehorn.script` file in the release directory to verify
+this.
 
 Use the `init` application list to prioritize OTP applications that are needed
-for error recovery. In the example above, we initialize the runtime, bring up
-the network, and ensure that we can receive new firmware updates. Now, if
-`my_app` fails to start, the node would still be in a state where it can receive
-new firmware over the network.
+for early on or for error recovery. In the example above, we initialize the
+runtime, bring up the network (in `:nerves_pack`), and ensure that we can
+receive new firmware updates. Now, if `simple_app` fails to start, the device
+would still be in a state where it can receive new firmware over the network.
 
-```elixir
-# config/config.exs
-
-config :shoehorn,
-  init: [:nerves_runtime]
-```
-
-## Application Failures
+## Handling application failures
 
 The Erlang VM will respond to application failures differently, depending on the
 _mode_ specified when the application started. The modes are:
@@ -120,9 +129,10 @@ _mode_ specified when the application started. The modes are:
 * `:temporary` - if the application terminates, it is reported but no other
   applications are terminated (the default behaviour).
 
-Unless overridden in the Mix release, Shoehorn starts all applications as
-`:temporary` and monitors application events by registering with the erlang
-kernel [error_logger](http://erlang.org/doc/man/error_logger.html).
+Unless overridden in the Mix release using the [`:applications`
+option](https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-options), Shoehorn
+most applications as `:temporary` and monitors application events by registering
+with the Erlang [error_logger](http://erlang.org/doc/man/error_logger.html).
 
 Application start and exit events will attempt to execute a callback to the
 configured `Shoehorn.Handler` module. By default, the module
@@ -136,31 +146,37 @@ handler in the prod env of your application config.
 # config/prod.exs
 
 config :shoehorn,
-  handler: MyApp.ShoehornHandler
+  handler: SimpleApp.ShoehornHandler
 ```
 
 More advanced failure cases can be handled by providing your own module that
-implements the `Shoehorn.Handler` behaviour. For example, the erlang `:ssh`
-application is prone to exiting when undergoing a brute force attack. Instead of
-the default production behaviour of forcing the node to restart, we can restart
-the application.
+implements the `Shoehorn.Handler` behaviour. For example, the Erlang `:ssh`
+application used to exit when subjected to a brute force attack (this seems like
+it has been fixed). Instead of the default production behaviour of forcing the
+node to restart, we can restart the application.
 
 ```elixir
 defmodule Example.RestartHandler do
   @behavior Shoehorn.Handler
 
   def init(_opts) do
-    {:ok, nil}
+    {:ok, :no_state}
   end
 
   def application_started(_app, state) do
     {:continue, state}
   end
 
-  def application_exited(app, _reason, state) do
-    Logger.error("Application stopped: #{inspect(app)} #{inspect(state)}")
-    Application.ensure_all_started(app)
+  def application_exited(:ssh, _reason, state) do
+    Logger.error("Stop bothering ssh!")
+    Process.sleep(1000)
+    Application.ensure_all_started(:ssh)
     {:continue, state}
+  end
+
+  def application_exited(app, _reason, state) do
+    Logger.error("Application stopped! #{inspect(app)} #{inspect(state)}")
+    {:halt, state}
   end
 end
 ```
