@@ -134,4 +134,31 @@ defmodule Shoehorn.ReleaseTest do
              iex: :none
            ]
   end
+
+  test "release doesn't include start list" do
+    release = @example_release |> Map.put(:boot_scripts, %{})
+    result = Release.init(release)
+    shoehorn_release = result.boot_scripts[:shoehorn]
+
+    # The load_only_app and iex applications are technically wrong, but the information
+    # was lost and shoehorn did its best
+    assert shoehorn_release == [
+             kernel: :permanent,
+             stdlib: :permanent,
+             compiler: :permanent,
+             elixir: :permanent,
+             logger: :permanent,
+             crypto: :permanent,
+             shoehorn: :permanent,
+             sasl: :permanent,
+             crash_app: :temporary,
+             load_only_app: :temporary,
+             optional_app: :temporary,
+             pure_library: :temporary,
+             some_app: :temporary,
+             system_init: :temporary,
+             my_project: :temporary,
+             iex: :permanent
+           ]
+  end
 end
