@@ -1,6 +1,8 @@
 defmodule Shoehorn.Release do
   @moduledoc false
 
+  alias Shoehorn.ReleaseError
+
   # These applications are unrecoverable using shoehorn
   @permanent_applications [
     :shoehorn,
@@ -109,14 +111,14 @@ defmodule Shoehorn.Release do
   defp checked_add_edge(graph, app, dep) do
     case :digraph.add_edge(graph, app, dep, :extra) do
       {:error, {:bad_vertex, v}} ->
-        raise RuntimeError, "Unknown application #{inspect(v)}"
+        raise ReleaseError, "Unknown application #{inspect(v)}"
 
       {:error, {:bad_edge, [_, _]}} ->
         # Edge already exists, so this is ok
         :ok
 
       {:error, {:bad_edge, _path}} ->
-        raise RuntimeError,
+        raise ReleaseError,
               "Cycle detected when adding the #{inspect(dep)} dependencies to #{inspect(app)}"
 
       _ ->
@@ -179,7 +181,7 @@ defmodule Shoehorn.Release do
   defp check_app(app) when is_atom(app), do: :ok
 
   defp check_app({_, _, _} = mfa) do
-    raise """
+    raise ReleaseError, """
     #{inspect(mfa)} is no longer supported in the Shoehorn `:init` option.
 
     To fix, move this function call to an appropriate `Application.start/2`.
@@ -198,7 +200,7 @@ defmodule Shoehorn.Release do
   end
 
   defp check_app(other) do
-    raise """
+    raise ReleaseError, """
     The Shoehorn `:init` option only supports atoms. #{inspect(other)}
     """
   end
