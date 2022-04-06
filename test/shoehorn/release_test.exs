@@ -244,4 +244,15 @@ defmodule Shoehorn.ReleaseTest do
              iex: :none
            ]
   end
+
+  test "bad init apps raise" do
+    release = @example_release |> Map.put(:options, shoehorn: [init: [nil]])
+    assert_raise ReleaseError, fn -> Release.init(release) end
+
+    release = @example_release |> Map.put(:options, shoehorn: [init: [:not_an_app]])
+    assert_raise ReleaseError, fn -> Release.init(release) end
+
+    release = @example_release |> Map.put(:options, shoehorn: [init: [{:m, :f, :a}]])
+    assert_raise ReleaseError, fn -> Release.init(release) end
+  end
 end

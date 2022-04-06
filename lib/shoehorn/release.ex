@@ -29,8 +29,8 @@ defmodule Shoehorn.Release do
     extra_deps = Access.get(opts, :extra_dependencies, [])
 
     # Validate arguments
-    Enum.each(init_apps, &check_app/1)
-    Enum.each(last_apps, &check_app/1)
+    Enum.each(init_apps, &check_app(&1, release.applications))
+    Enum.each(last_apps, &check_app(&1, release.applications))
 
     # Build dependency graph
     sorted_apps =
@@ -178,9 +178,11 @@ defmodule Shoehorn.Release do
     order_dependencies(dep_graph, rest)
   end
 
-  defp check_app(app) when is_atom(app), do: :ok
+  defp check_app(app, applications) when is_atom(app) do
+    applications[app] != nil or raise ReleaseError, "#{app} is not a known OTP application"
+  end
 
-  defp check_app({_, _, _} = mfa) do
+  defp check_app({_, _, _} = mfa, _applications) do
     raise ReleaseError, """
     #{inspect(mfa)} is no longer supported in the Shoehorn `:init` option.
 
@@ -199,7 +201,7 @@ defmodule Shoehorn.Release do
     """
   end
 
-  defp check_app(other) do
+  defp check_app(other, _applications) do
     raise ReleaseError, """
     The Shoehorn `:init` option only supports atoms. #{inspect(other)}
     """
