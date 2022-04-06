@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.9.1 - 2022-04-04
+
+* Updates
+  * Improve detection of invalid applications being passed in the `:init` and
+    `:last` options.
+  * Fall back to a reasonable default when trying to get application modes from
+    the release options. This fixes an exception when building the release.
+  * Support release configuration via the release options in a project's
+    `mix.exs`. Add a `:shoehorn` key to the release parameters to set `:init`,
+    `:last` or the `:exxtra_dependencies` options.
+
 ## v0.9.0 - 2022-04-03
 
 This is a major update to Shoehorn that includes **breaking changes**:
