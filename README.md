@@ -48,7 +48,7 @@ releases` configuration in the `mix.exs` (replace `:simple_app`):
 
   defp deps do
     [
-      {:shoehorn, "~> 0.9.0"}
+      {:shoehorn, "~> 0.9.1"}
     ]
   end
 end
