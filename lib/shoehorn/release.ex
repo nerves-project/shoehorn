@@ -39,9 +39,7 @@ defmodule Shoehorn.Release do
       |> :digraph_utils.topsort()
       |> Enum.reverse()
 
-    apps_with_modes =
-      release.boot_scripts[:start]
-      |> Enum.map(&update_start_mode/1)
+    apps_with_modes = assign_modes_to_apps(release)
 
     start_apps =
       for app <- sorted_apps do
@@ -51,6 +49,20 @@ defmodule Shoehorn.Release do
     new_boot_scripts = Map.put(release.boot_scripts, :shoehorn, start_apps)
 
     %{release | boot_scripts: new_boot_scripts}
+  end
+
+  defp assign_modes_to_apps(release) do
+    # Mix release doesn't pass the user's application modes, but they can
+    # be derived from the start script if it exists.
+    case release.boot_scripts[:start] do
+      nil ->
+        release.applications
+        |> Enum.map(fn {app, _info} -> {app, :permanent} end)
+        |> Enum.map(&update_start_mode/1)
+
+      app_modes ->
+        Enum.map(app_modes, &update_start_mode/1)
+    end
   end
 
   defp update_start_mode({app, mode}) do
