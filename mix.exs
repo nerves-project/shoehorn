@@ -52,7 +52,7 @@ defmodule Shoehorn.MixProject do
   end
 
   defp description do
-    "Get your boot on."
+    "Shoehorn helps you handle OTP application failures"
   end
 
   defp package do
