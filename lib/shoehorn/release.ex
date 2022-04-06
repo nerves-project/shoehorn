@@ -20,9 +20,11 @@ defmodule Shoehorn.Release do
   """
   @spec init(Mix.Release.t()) :: Mix.Release.t()
   def init(%Mix.Release{} = release) do
-    init_apps = [:logger, :shoehorn, :sasl] ++ Application.get_env(:shoehorn, :init, [])
-    last_apps = Application.get_env(:shoehorn, :last, [:iex])
-    extra_deps = Application.get_env(:shoehorn, :extra_dependencies, [])
+    opts = options(release)
+
+    init_apps = [:logger, :shoehorn, :sasl] ++ Access.get(opts, :init, [])
+    last_apps = Access.get(opts, :last, [:iex])
+    extra_deps = Access.get(opts, :extra_dependencies, [])
 
     # Validate arguments
     Enum.each(init_apps, &check_app/1)
@@ -49,6 +51,13 @@ defmodule Shoehorn.Release do
     new_boot_scripts = Map.put(release.boot_scripts, :shoehorn, start_apps)
 
     %{release | boot_scripts: new_boot_scripts}
+  end
+
+  defp options(release) do
+    config = Application.get_all_env(:shoehorn)
+    options = release.options[:shoehorn] || []
+
+    Keyword.merge(config, options)
   end
 
   defp assign_modes_to_apps(release) do
