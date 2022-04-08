@@ -7,7 +7,7 @@ defmodule Shoehorn.Application do
   def start(_type, _args) do
     if using_shoehorn?() do
       opts = Application.get_all_env(:shoehorn)
-      :error_logger.add_report_handler(Shoehorn.ReportHandler, opts)
+      :logger.add_handler(:shoehorn, Shoehorn.ReportHandler, %{config: opts})
     end
 
     opts = [strategy: :one_for_one, name: Shoehorn.Supervisor]

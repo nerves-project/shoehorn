@@ -1,76 +1,89 @@
 defmodule Shoehorn.ReportHandler do
   @moduledoc false
-
-  @behaviour :gen_event
+  use GenServer
 
   alias Shoehorn.Handler
 
   @shutdown_timer 30_000
 
-  @impl :gen_event
+  @doc false
+  def adding_handler(%{config: opts} = config) do
+    {:ok, pid} = GenServer.start_link(__MODULE__, opts)
+    {:ok, %{config | config: %{pid: pid}}}
+  end
+
+  @doc false
+  def removing_handler(%{config: %{pid: pid}}) do
+    GenServer.stop(pid)
+  end
+
+  @doc false
+  def log(
+        %{msg: {:report, %{label: {:application_controller, :progress}, report: report}}},
+        config
+      ) do
+    application = Keyword.get(report, :application)
+    GenServer.cast(config.config.pid, {:start, application})
+  end
+
+  def log(%{msg: {:report, %{label: {:application_controller, :exit}, report: report}}}, config) do
+    application = Keyword.get(report, :application)
+    reason = Keyword.get(report, :exited)
+    GenServer.cast(config.config.pid, {:exit, application, reason})
+  end
+
+  def log(_log, _config), do: :ok
+
+  @impl GenServer
   def init(opts) do
     shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
-
-    {:ok,
-     %{
-       handler: Handler.init(opts),
-       shutdown_timer: shutdown_timer
-     }}
+    {:ok, %{handler: Handler.init(opts), shutdown_timer: shutdown_timer}}
   end
 
-  @impl :gen_event
-  def handle_call(_, s) do
-    {:ok, :ok, s}
+  @impl GenServer
+  def handle_call(_, _, state) do
+    {:reply, :ok, state}
   end
 
-  @impl :gen_event
-  def handle_event({:info_report, _pid, {_, :std_info, info}}, s) when is_list(info) do
-    case Keyword.get(info, :exited) do
-      nil ->
-        {:ok, s}
-
-      reason ->
-        app = Keyword.get(info, :application)
-        {:ok, exited(app, reason, s)}
-    end
+  @impl GenServer
+  def handle_cast({:start, application}, state) do
+    {:noreply, started(application, state)}
   end
 
-  def handle_event({:info_report, _pid, {_, :progress, info}}, s) when is_list(info) do
-    case Keyword.get(info, :started_at) do
-      nil ->
-        {:ok, s}
-
-      _node ->
-        app = Keyword.get(info, :application)
-        {:ok, started(app, s)}
-    end
+  def handle_cast({:exit, application, reason}, state) do
+    {:noreply, exited(application, reason, state)}
   end
 
-  def handle_event(_event, s) do
-    {:ok, s}
+  def handle_cast(_, state) do
+    {:noreply, state}
   end
 
-  @impl :gen_event
-  def terminate(_args, _s) do
+  @impl GenServer
+  def handle_info(_, state) do
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def terminate(_reason, _state) do
     :ok
   end
 
-  defp exited(app, reason, s) do
-    {:ok, shutdown_timer_ref} = :timer.apply_after(s.shutdown_timer, :erlang, :halt, [])
+  defp exited(app, reason, state) do
+    {:ok, shutdown_timer_ref} = :timer.apply_after(state.shutdown_timer, :erlang, :halt, [])
 
     return =
       :application_exited
-      |> Handler.invoke(app, reason, s.handler)
-      |> react(s)
+      |> Handler.invoke(app, reason, state.handler)
+      |> react(state)
 
     _ = :timer.cancel(shutdown_timer_ref)
     return
   end
 
-  defp started(app, s) do
+  defp started(app, state) do
     :application_started
-    |> Handler.invoke(app, s.handler)
-    |> react(s)
+    |> Handler.invoke(app, state.handler)
+    |> react(state)
   end
 
   defp react({:halt, _}, _), do: :erlang.halt()
