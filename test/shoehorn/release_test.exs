@@ -12,7 +12,7 @@ defmodule Shoehorn.ReleaseTest do
     applications: %{
       compiler: [
         applications: [:kernel, :stdlib],
-        runtime_dependencies: ['stdlib-3.13', 'kernel-7.0', 'erts-11.0', 'crypto-3.6']
+        runtime_dependencies: [~c"stdlib-3.13", ~c"kernel-7.0", ~c"erts-11.0", ~c"crypto-3.6"]
       ],
       crash_app: [
         applications: [:kernel, :stdlib, :elixir, :logger],
@@ -20,7 +20,7 @@ defmodule Shoehorn.ReleaseTest do
       ],
       crypto: [
         applications: [:kernel, :stdlib],
-        runtime_dependencies: ['erts-9.0', 'stdlib-3.4', 'kernel-5.3']
+        runtime_dependencies: [~c"erts-9.0", ~c"stdlib-3.4", ~c"kernel-5.3"]
       ],
       elixir: [
         applications: [:kernel, :stdlib, :compiler]
@@ -104,7 +104,7 @@ defmodule Shoehorn.ReleaseTest do
         system_init: :permanent
       ]
     },
-    erts_version: '',
+    erts_version: ~c"",
     erts_source: nil,
     config_providers: [],
     options: [],
