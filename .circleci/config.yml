@@ -6,7 +6,7 @@ defaults: &defaults
     LC_ALL: C.UTF-8
 
 latest: &latest
-  pattern: "^1.13.4-erlang-25.*$"
+  pattern: "^1.14.5-erlang-25.*$"
 
 jobs:
   build-test:
@@ -55,9 +55,10 @@ workflows:
           matrix:
             parameters:
               tag: [
-                1.13.4-erlang-25.0-alpine-3.15.4,
-                1.13.4-erlang-24.3.4-alpine-3.15.3,
-                1.12.3-erlang-24.3.4-alpine-3.15.3,
-                1.11.4-erlang-23.3.4.13-alpine-3.15.3,
-                1.10.4-erlang-23.3.4-alpine-3.13.3
+                1.14.5-erlang-25.3.2-alpine-3.18.0,
+                1.13.4-erlang-25.3.2-alpine-3.18.0,
+                1.13.4-erlang-24.3.4.11-alpine-3.18.0,
+                1.12.3-erlang-24.3.4.11-alpine-3.18.0,
+                1.11.4-erlang-23.3.4.18-alpine-3.16.2,
+                1.10.4-erlang-23.3.4.18-alpine-3.16.2
               ]
