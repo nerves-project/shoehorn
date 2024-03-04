@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.2 - 2024-03-04
+
+* Updates
+  * Improve error message when an OTP application isn't found when building the
+    OTP release script. It's usually due to a dependency typo or wrong targets
+    spec, so point to that.
+
 ## v0.9.1 - 2022-04-04
 
 * Updates
