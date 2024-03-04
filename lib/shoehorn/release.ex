@@ -179,7 +179,15 @@ defmodule Shoehorn.Release do
   end
 
   defp check_app(app, applications) when is_atom(app) do
-    applications[app] != nil or raise ReleaseError, "#{app} is not a known OTP application"
+    applications[app] != nil or
+      raise ReleaseError, """
+      #{inspect(app)} is not a known OTP application
+
+      If '#{inspect(app)}' looks right (no typos, etc.) then check that it exists
+      in your project's `mix.exs`'s dependency list. If it exists and has a
+      `:targets` option, make sure the current target, '#{Mix.target()}', is in
+      the list.
+      """
   end
 
   defp check_app({_, _, _} = mfa, _applications) do
