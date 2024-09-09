@@ -9,13 +9,13 @@ defmodule Shoehorn.Application do
 
   @impl Application
   def start(_type, _args) do
+    env = Application.get_all_env(:shoehorn)
     if using_shoehorn?() do
-      opts = Application.get_all_env(:shoehorn)
-      :error_logger.add_report_handler(Shoehorn.ReportHandler, opts)
+      Shoehorn.ReportHandler.init_handler()
     end
 
     opts = [strategy: :one_for_one, name: Shoehorn.Supervisor]
-    Supervisor.start_link([], opts)
+    Supervisor.start_link([{Shoehorn.ReportHandler, env}], opts)
   end
 
   defp using_shoehorn?() do
