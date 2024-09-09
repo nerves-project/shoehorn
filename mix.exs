@@ -8,7 +8,7 @@ defmodule Shoehorn.MixProject do
     [
       app: :shoehorn,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       description: description(),
