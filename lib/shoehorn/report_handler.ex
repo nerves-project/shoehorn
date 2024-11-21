@@ -1,58 +1,36 @@
 defmodule Shoehorn.ReportHandler do
   @moduledoc false
 
-  @behaviour :gen_event
-
   alias Shoehorn.Handler
+  use GenServer
 
   @shutdown_timer 30_000
 
-  @impl :gen_event
+  def init_handler() do
+    current_filters = :logger.get_primary_config() |> find_filters()
+    shoehorn_filters = [
+        shoehorn_filter: {&Shoehorn.Filter.filter/2, []}
+      ]
+    # put the shoehorn filter to the front of the list to make sure it handles the message first.
+    :logger.set_primary_config(:filters, shoehorn_filters ++ current_filters)
+  end
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
   def init(opts) do
     shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
-
-    {:ok,
-     %{
-       handler: Handler.init(opts),
-       shutdown_timer: shutdown_timer
-     }}
+    state = %{handler: Handler.init(opts), shutdown_timer: shutdown_timer}
+    {:ok, state}
   end
 
-  @impl :gen_event
-  def handle_call(_, s) do
-    {:ok, :ok, s}
+  def handle_cast({:exit, app, reason}, s) do
+    {:noreply, exited(app, reason, s)}
   end
 
-  @impl :gen_event
-  def handle_event({:info_report, _pid, {_, :std_info, info}}, s) when is_list(info) do
-    case Keyword.get(info, :exited) do
-      nil ->
-        {:ok, s}
-
-      reason ->
-        app = Keyword.get(info, :application)
-        {:ok, exited(app, reason, s)}
-    end
-  end
-
-  def handle_event({:info_report, _pid, {_, :progress, info}}, s) when is_list(info) do
-    case Keyword.get(info, :started_at) do
-      nil ->
-        {:ok, s}
-
-      _node ->
-        app = Keyword.get(info, :application)
-        {:ok, started(app, s)}
-    end
-  end
-
-  def handle_event(_event, s) do
-    {:ok, s}
-  end
-
-  @impl :gen_event
-  def terminate(_args, _s) do
-    :ok
+  def handle_cast({:started, app}, s) do
+    {:noreply, started(app, s)}
   end
 
   defp exited(app, reason, s) do
@@ -75,4 +53,7 @@ defmodule Shoehorn.ReportHandler do
 
   defp react({:halt, _}, _), do: :erlang.halt()
   defp react({:continue, handler}, state), do: %{state | handler: handler}
+
+  defp find_filters(%{filters: filters}), do: filters
+  defp find_filters(_), do: []
 end
