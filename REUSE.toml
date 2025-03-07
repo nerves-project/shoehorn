@@ -1,0 +1,86 @@
+version = 1
+
+[[annotations]]
+path = [
+ ".circleci/config.yml",
+ ".credo.exs",
+ ".formatter.exs",
+ ".github/FUNDING.yml",
+ ".github/CODE_OF_CONDUCT.md",
+ ".github/ISSUE_TEMPLATE.md",
+ ".github/CONTRIBUTING.md",
+ ".github/dependabot.yml",
+ ".github/dependabot.yml",
+ ".gitignore",
+ "CHANGELOG.md",
+ "NOTICE",
+ "REUSE.toml",
+ "mix.exs",
+ "mix.lock",
+ "test/.gitignore"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+ "README.md"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2017 Frank Hunleth"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = [
+  "example/system_init/mix.exs",
+  "example/system_init/.gitignore",
+  "example/system_init/lib/system_init/application.ex",
+  "example/system_init/lib/system_init.ex",
+  "example/system_init/.formatter.exs",
+  "example/crash_app/mix.exs",
+  "example/crash_app/README.md",
+  "example/crash_app/.gitignore",
+  "example/crash_app/lib/crash_app.ex",
+  "example/crash_app/lib/crash_app/application.ex",
+  "example/crash_app/.formatter.exs",
+  "example/optional_app/mix.exs",
+  "example/optional_app/README.md",
+  "example/optional_app/.gitignore",
+  "example/optional_app/lib/optional_app/application.ex",
+  "example/optional_app/lib/optional_app.ex",
+  "example/optional_app/.formatter.exs",
+  "example/load_only_app/mix.exs",
+  "example/load_only_app/.gitignore",
+  "example/load_only_app/lib/load_only_app.ex",
+  "example/load_only_app/lib/load_only_app/application.ex",
+  "example/load_only_app/.formatter.exs",
+  "example/some_app/mix.exs",
+  "example/some_app/README.md",
+  "example/some_app/.gitignore",
+  "example/some_app/lib/some_app.ex",
+  "example/some_app/lib/some_app/application.ex",
+  "example/some_app/.formatter.exs",
+  "example/README.md",
+  "example/my_project/mix.exs",
+  "example/my_project/test/test_helper.exs",
+  "example/my_project/test/my_project_test.exs",
+  "example/my_project/config/config.exs",
+  "example/my_project/rel/remote.vm.args.eex",
+  "example/my_project/rel/env.bat.eex",
+  "example/my_project/rel/vm.args.eex",
+  "example/my_project/rel/env.sh.eex",
+  "example/my_project/.gitignore",
+  "example/my_project/lib/my_project.ex",
+  "example/my_project/lib/my_project/shoehorn_handler.ex",
+  "example/my_project/lib/my_project/application.ex",
+  "example/my_project/.formatter.exs",
+  "example/pure_library/mix.exs",
+  "example/pure_library/.gitignore",
+  "example/pure_library/lib/pure_library.ex",
+  "example/pure_library/.formatter.exs"
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "None"
+SPDX-License-Identifier = "CC0-1.0"
+

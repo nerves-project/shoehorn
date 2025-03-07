@@ -1,3 +1,12 @@
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+# SPDX-FileCopyrightText: 2018 Amos L King
+# SPDX-FileCopyrightText: 2018 Michael K. Schmidt
+# SPDX-FileCopyrightText: 2019 Jon Carstens
+# SPDX-FileCopyrightText: 2021 Benjamin Milde
+# SPDX-FileCopyrightText: 2021 Frank Hunleth
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule Shoehorn.Handler do
   @moduledoc """
   A behaviour module for implementing handling of failing applications

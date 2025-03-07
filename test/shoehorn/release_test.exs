@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2022 Frank Hunleth
+# SPDX-FileCopyrightText: 2023 Jon Carstens
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule Shoehorn.ReleaseTest do
   use ExUnit.Case, async: true
 

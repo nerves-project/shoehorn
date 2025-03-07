@@ -1,7 +1,9 @@
 # Shoehorn
 
-[![CircleCI](https://circleci.com/gh/nerves-project/shoehorn.svg?style=svg)](https://circleci.com/gh/nerves-project/shoehorn)
 [![Hex version](https://img.shields.io/hexpm/v/shoehorn.svg "Hex version")](https://hex.pm/packages/shoehorn)
+[![API docs](https://img.shields.io/hexpm/v/shoehorn.svg?label=hexdocs "API docs")](https://hexdocs.pm/shoehorn/Shoehorn.html)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/nerves-project/shoehorn/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/nerves-project/shoehorn/tree/main)
+[![REUSE status](https://api.reuse.software/badge/github.com/nerves-project/shoehorn)](https://api.reuse.software/info/github.com/nerves-project/shoehorn)
 
 Shoehorn helps you handle OTP application failures
 

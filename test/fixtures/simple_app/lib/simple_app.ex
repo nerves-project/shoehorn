@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017 Justin Schneck
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule SimpleApp.A do
   @moduledoc """
   Documentation for SimpleApp.
