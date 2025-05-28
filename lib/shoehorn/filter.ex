@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Alan Jackson
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 defmodule Shoehorn.Filter do
   @moduledoc false
 
