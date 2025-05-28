@@ -14,9 +14,11 @@ defmodule Shoehorn.ReportHandler do
 
   def init_handler() do
     current_filters = :logger.get_primary_config() |> find_filters()
+
     shoehorn_filters = [
-        shoehorn_filter: {&Shoehorn.Filter.filter/2, []}
-      ]
+      shoehorn_filter: {&Shoehorn.Filter.filter/2, []}
+    ]
+
     # put the shoehorn filter to the front of the list to make sure it handles the message first.
     :logger.set_primary_config(:filters, shoehorn_filters ++ current_filters)
   end

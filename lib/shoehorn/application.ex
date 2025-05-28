@@ -11,6 +11,7 @@ defmodule Shoehorn.Application do
   @impl Application
   def start(_type, _args) do
     env = Application.get_all_env(:shoehorn)
+
     if using_shoehorn?() do
       Shoehorn.ReportHandler.init_handler()
     end
