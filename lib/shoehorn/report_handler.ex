@@ -12,6 +12,7 @@ defmodule Shoehorn.ReportHandler do
 
   @shutdown_timer 30_000
 
+  @spec init_handler() :: :ok
   def init_handler() do
     current_filters = :logger.get_primary_config() |> find_filters()
 
@@ -19,20 +20,28 @@ defmodule Shoehorn.ReportHandler do
       shoehorn_filter: {&Shoehorn.Filter.filter/2, []}
     ]
 
-    # put the shoehorn filter to the front of the list to make sure it handles the message first.
-    :logger.set_primary_config(:filters, shoehorn_filters ++ current_filters)
+    # Put the shoehorn filter to the front of the list to make sure it handles
+    # the message first.
+
+    # Note: Ignore errors since this isn't a good place to raise and if logging
+    # is not working, then logging an error won't help.
+    _ = :logger.set_primary_config(:filters, shoehorn_filters ++ current_filters)
+    :ok
   end
 
+  @spec start_link(Keyword.t()) :: GenServer.on_start()
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
+  @impl GenServer
   def init(opts) do
     shutdown_timer = opts[:shutdown_timer] || @shutdown_timer
     state = %{handler: Handler.init(opts), shutdown_timer: shutdown_timer}
     {:ok, state}
   end
 
+  @impl GenServer
   def handle_cast({:exit, app, reason}, s) do
     {:noreply, exited(app, reason, s)}
   end
