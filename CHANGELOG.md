@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.9.3 - 2025-05-28
+
+This is an important update that fixes the Application restart functionality
+for Elixir 1.15 and later. All users who rely on this feature should check that
+it behaves as expected in their use cases.
+
+Elixir 1.15 and later are required now.
+
+* Updates
+  * Rewrote application restart logic for Elixir 1.15+. See #138 for details.
+    Thanks to @alanj853 for implementing and @cokron for independent
+    verification.
+  * Clarify copyright and licensing for REUSE compliance
+
 ## v0.9.2 - 2024-03-04
 
 * Updates
@@ -16,7 +30,7 @@
     the release options. This fixes an exception when building the release.
   * Support release configuration via the release options in a project's
     `mix.exs`. Add a `:shoehorn` key to the release parameters to set `:init`,
-    `:last` or the `:exxtra_dependencies` options.
+    `:last` or the `:extra_dependencies` options.
 
 ## v0.9.0 - 2022-04-03
 
@@ -99,7 +113,7 @@ config will use `Shoehorn.Handler.Ignore`.
 
 The default strategy for how Shoehorn handles OTP application exits has changed.
 Before this release, if an application were to exit the node would remain running
-and that applications would remain stopped. This may be desireable for development
+and that applications would remain stopped. This may be desirable for development
 and test but is typically undesirable in production. This behaviour can be
 customized by configuring the `handler` in the config. For example, in dev you can
 use the module `Shoehorn.Handler.Ignore` to prevent the node from halting on failure.

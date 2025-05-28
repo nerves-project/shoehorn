@@ -1,7 +1,7 @@
 defmodule Shoehorn.MixProject do
   use Mix.Project
 
-  @version "0.9.2"
+  @version "0.9.3"
   @source_url "https://github.com/nerves-project/shoehorn"
 
   def project do
