@@ -6,9 +6,9 @@
 #
 defmodule Shoehorn.ReportHandler do
   @moduledoc false
+  use GenServer
 
   alias Shoehorn.Handler
-  use GenServer
 
   @shutdown_timer 30_000
 
