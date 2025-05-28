@@ -6,7 +6,7 @@ This is an important update that fixes the Application restart functionality
 for Elixir 1.15 and later. All users who rely on this feature should check that
 it behaves as expected in their use cases.
 
-Elixir 1.15 and later are required now.
+Elixir 1.15 or later is now required.
 
 * Updates
   * Rewrote application restart logic for Elixir 1.15+. See #138 for details.
