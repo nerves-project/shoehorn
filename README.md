@@ -1,7 +1,7 @@
 # Shoehorn
 
 [![Hex version](https://img.shields.io/hexpm/v/shoehorn.svg "Hex version")](https://hex.pm/packages/shoehorn)
-[![API docs](https://img.shields.io/hexpm/v/shoehorn.svg?label=hexdocs "API docs")](https://hexdocs.pm/shoehorn/Shoehorn.html)
+[![API docs](https://img.shields.io/hexpm/v/shoehorn.svg?label=hexdocs "API docs")](https://shoehorn.hexdocs.pm/Shoehorn.html)
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/nerves-project/shoehorn/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/nerves-project/shoehorn/tree/main)
 [![REUSE status](https://api.reuse.software/badge/github.com/nerves-project/shoehorn)](https://api.reuse.software/info/github.com/nerves-project/shoehorn)
 
@@ -132,7 +132,7 @@ _mode_ specified when the application started. The modes are:
   applications are terminated (the default behaviour).
 
 Unless overridden in the Mix release using the [`:applications`
-option](https://hexdocs.pm/mix/Mix.Tasks.Release.html#module-options), Shoehorn
+option](https://mix.hexdocs.pm/Mix.Tasks.Release.html#module-options), Shoehorn
 most applications as `:temporary` and monitors application events by registering
 with the Erlang [error_logger](http://erlang.org/doc/man/error_logger.html).
 

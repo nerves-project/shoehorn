@@ -1,5 +1,5 @@
 defmodule CrashApp.Application do
-  # See https://hexdocs.pm/elixir/Application.html
+  # See https://elixir.hexdocs.pm/Application.html
   # for more information on OTP Applications
   @moduledoc false
 
@@ -14,7 +14,7 @@ defmodule CrashApp.Application do
       # {CrashApp.Worker, arg}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
+    # See https://elixir.hexdocs.pm/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: CrashApp.Supervisor]
     Supervisor.start_link(children, opts)
