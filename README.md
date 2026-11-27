@@ -57,6 +57,31 @@ releases` configuration in the `mix.exs` (replace `:simple_app`):
 end
 ```
 
+### Igniter
+
+If your project uses [Igniter](https://hexdocs.pm/igniter), you can add
+Shoehorn with:
+
+```sh
+mix igniter.install shoehorn
+```
+
+This adds the dependency and, when `:nerves_runtime` and/or `:nerves_pack` are
+dependencies of your project, configures them in Shoehorn's `:init` list (see
+below) in `config/target.exs`, or in `config/config.exs` if the project doesn't
+have a `config/target.exs`. It then tells you what's left to do for your kind of
+project. Nerves 1.x projects need nothing else. Nerves 2 doesn't use Shoehorn
+for release boot scripts any more, so Nerves 2 and non-Nerves projects need
+`&Shoehorn.Release.init/1` in their release steps as shown above.
+
+Options:
+
+* `--shoehorn-init` - additional OTP applications to add to the `:init` list.
+  For example, `--shoehorn-init my_early_app,my_other_app`.
+* `--shoehorn-release-step` - add `&Shoehorn.Release.init/1` before `:assemble`
+  in an existing release `:steps` list in your `mix.exs`. Projects that call
+  `&Nerves.Release.init/1` are left alone since that already calls Shoehorn.
+
 Create a release:
 
 ```sh

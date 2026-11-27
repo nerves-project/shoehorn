@@ -36,7 +36,8 @@ defmodule Shoehorn.MixProject do
     [
       {:credo, "~> 1.6", only: :dev, runtime: false},
       {:dialyxir, "~> 1.4.0", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.22", only: :docs, runtime: false}
+      {:ex_doc, "~> 0.22", only: :docs, runtime: false},
+      {:igniter, "~> 0.6", optional: true, runtime: false}
     ]
   end
 
@@ -76,7 +77,7 @@ defmodule Shoehorn.MixProject do
   defp dialyzer() do
     [
       flags: [:missing_return, :extra_return, :unmatched_returns, :error_handling, :underspecs],
-      plt_add_apps: [:mix]
+      plt_add_apps: [:mix, :igniter, :sourceror, :rewrite]
     ]
   end
 end
